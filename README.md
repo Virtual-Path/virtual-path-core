@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-This project is a cross-platform desktop drawing application built on the Avalonia UI framework using C#. It integrates high-performance OpenGL rendering and employs a modern MVVM (Model-View-ViewModel) architecture to deliver a flexible, extensible, and user-friendly experience. The application supports multiple custom drawing services, providing a dynamic and personalized interface layout with rich interactive capabilities.
+This project is a cross-platform desktop drawing application built on the Avalonia UI framework using C#. It integrates high-performance OpenGL rendering and employs a modern MVVM (Model-View-ViewModel) architecture to deliver a flexible, extensible, 和 user-friendly experience. 
 
 <img width="1000" height="750" alt="QQ20250731-120636" src="https://github.com/user-attachments/assets/5cc7c503-105e-431e-b3c9-3776e36c87ab" />
 
