@@ -105,33 +105,14 @@ public class Renderer : OpenGlControlBase, IGraphicsHost<GL>
         if (context == null || frame == null || canvasPipeline == null || canvasMeshes == null)
             return;
 
-        // === SCENE RENDER: MSAA offscreen ===
         int w = PixelWidth, h = PixelHeight;
-        frame.Update(w, h, Samples);
 
-        frame.Bind();
-        {
-            OnUpdate?.Invoke(_stopwatch.Elapsed.TotalSeconds);
-            OnRender?.Invoke(_stopwatch.Elapsed.TotalSeconds);
-        }
-        frame.Unbind();
-
-        // === SCREEN RENDER: canvas quad with scene texture ===
+        // Render scene directly to the default framebuffer (no offscreen pass)
         context.BindFramebuffer(GLEnum.Framebuffer, (uint)fb);
         context.Viewport(0, 0, (uint)w, (uint)h);
-        context.ClearColor(0.2f, 0.2f, 0.25f, 1.0f);
-        context.Clear((uint)(GLEnum.ColorBufferBit | GLEnum.DepthBufferBit));
 
-        canvasPipeline.Bind();
-        context.Disable(GLEnum.DepthTest);
-        canvasPipeline.SetUniform("Tex", 0, frame.Texture);
-
-        foreach (Mesh mesh in canvasMeshes)
-        {
-            mesh.Draw();
-        }
-
-        canvasPipeline.Unbind();
+        OnUpdate?.Invoke(_stopwatch.Elapsed.TotalSeconds);
+        OnRender?.Invoke(_stopwatch.Elapsed.TotalSeconds);
 
         Dispatcher.UIThread.Post(RequestNextFrameRendering, DispatcherPriority.Render);
     }
