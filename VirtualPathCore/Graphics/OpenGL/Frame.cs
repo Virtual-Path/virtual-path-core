@@ -143,6 +143,7 @@ public class Frame : GraphicsResource
     {
         GL.BindFramebuffer(GLEnum.Framebuffer, Framebuffer);
         GL.Viewport(0, 0, (uint)Width, (uint)Height);
+        GL.Clear((uint)(GLEnum.ColorBufferBit | GLEnum.DepthBufferBit));
     }
 
     /// <summary>
