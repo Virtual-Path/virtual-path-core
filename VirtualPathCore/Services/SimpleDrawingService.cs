@@ -171,6 +171,7 @@ namespace VirtualPathCore.Services
             _isMouseDown = true;
             _lastMouseX = x;
             _lastMouseY = y;
+            renderer.RequestRender();
         }
 
         public void OnMouseUp()
@@ -184,11 +185,13 @@ namespace VirtualPathCore.Services
             orbitController.Orbit(x - _lastMouseX, y - _lastMouseY);
             _lastMouseX = x;
             _lastMouseY = y;
+            renderer.RequestRender();
         }
 
         public void OnScroll(float delta)
         {
             orbitController.Zoom(delta * 2);
+            renderer.RequestRender();
         }
     }
 }

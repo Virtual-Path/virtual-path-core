@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using Silk.NET.OpenGLES;
 using VirtualPathCore.Graphics;
 using VirtualPathCore.Graphics.Core;
@@ -29,11 +30,34 @@ public class SceneService
 
     public bool CanCreateObjects => _graphicsHost != null;
 
+    private void RequestRender()
+    {
+        if (_graphicsHost is Renderer r)
+            r.RequestRender();
+    }
+
+    private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        RequestRender();
+    }
+
+    private void Subscribe(SceneObjectViewModel vm)
+    {
+        vm.PropertyChanged += OnViewModelChanged;
+    }
+
+    private void Unsubscribe(SceneObjectViewModel vm)
+    {
+        vm.PropertyChanged -= OnViewModelChanged;
+    }
+
     public SceneObjectViewModel AddCube(string name = "Cube")
     {
         var vm = SceneObjectViewModel.CreateCube(name);
         _scene.AddObject(vm.SceneObject);
         SceneObjects.Add(vm);
+        Subscribe(vm);
+        RequestRender();
         return vm;
     }
 
@@ -42,21 +66,28 @@ public class SceneService
         var vm = SceneObjectViewModel.CreateSphere(name);
         _scene.AddObject(vm.SceneObject);
         SceneObjects.Add(vm);
+        Subscribe(vm);
+        RequestRender();
         return vm;
     }
 
     public void RemoveObject(SceneObjectViewModel vm)
     {
+        Unsubscribe(vm);
         _scene.RemoveObject(vm.SceneObject);
         SceneObjects.Remove(vm);
         if (SelectedObject == vm)
             SelectedObject = null;
+        RequestRender();
     }
 
     public void Clear()
     {
+        foreach (var vm in SceneObjects)
+            Unsubscribe(vm);
         _scene.Clear();
         SceneObjects.Clear();
         SelectedObject = null;
+        RequestRender();
     }
 }

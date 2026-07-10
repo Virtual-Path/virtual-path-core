@@ -115,18 +115,11 @@ public class Renderer : OpenGlControlBase, IGraphicsHost<GL>
 
         int w = PixelWidth, h = PixelHeight;
 
-        // Render scene directly to the default framebuffer (no offscreen pass)
         context.BindFramebuffer(GLEnum.Framebuffer, (uint)fb);
         context.Viewport(0, 0, (uint)w, (uint)h);
 
         OnUpdate?.Invoke(_stopwatch.Elapsed.TotalSeconds);
         OnRender?.Invoke(_stopwatch.Elapsed.TotalSeconds);
-
-        if (!_renderQueued)
-        {
-            _renderQueued = true;
-            Dispatcher.UIThread.Post(RequestNextFrameRendering, DispatcherPriority.Background);
-        }
     }
 
     public event Action<float, float>? OnMouseDown;
