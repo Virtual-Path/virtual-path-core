@@ -9,17 +9,13 @@
              x:DataType="vm:MainViewModel"
              xmlns:views="using:VirtualPathCore.Views">
 
-    <Grid RowDefinitions="*,Auto" ColumnDefinitions="*">
-        <Border Grid.Row="0" Margin="6" Background="#222" CornerRadius="8" Padding="6">
-            <Grid>
-                <opengl:Renderer x:Name="glRenderer1" />
-                <StackPanel VerticalAlignment="Top" Margin="8" Spacing="4" Opacity="0.8">
-                    <TextBlock Foreground="White" FontWeight="Bold" FontSize="14" Text="3D Viewport" />
-                    <TextBlock Foreground="#AAA" FontSize="11" Text="Left-drag: Orbit | Scroll: Zoom" />
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <views:ParameterControlPanel Grid.Row="1" />
-    </Grid>
+    <Border Margin="6" Background="#222" CornerRadius="8" Padding="6">
+        <Grid>
+            <opengl:Renderer x:Name="glRenderer1" />
+            <StackPanel VerticalAlignment="Top" Margin="8" Spacing="4" Opacity="0.8">
+                <TextBlock Foreground="White" FontWeight="Bold" FontSize="14" Text="3D Viewport" />
+                <TextBlock Foreground="#AAA" FontSize="11" Text="Left-drag: Orbit | Scroll: Zoom" />
+            </StackPanel>
+        </Grid>
+    </Border>
 </UserControl>

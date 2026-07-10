@@ -101,7 +101,73 @@ public partial class SceneObjectViewModel : ObservableObject
         }
     }
 
-    public float RotationAngle { get; set; }
+    public float Metallic
+    {
+        get => _sceneObject.Material?.Metallic ?? 0.0f;
+        set
+        {
+            if (_sceneObject.Material != null)
+            {
+                _sceneObject.Material.Metallic = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public float Roughness
+    {
+        get => _sceneObject.Material?.Roughness ?? 1.0f;
+        set
+        {
+            if (_sceneObject.Material != null)
+            {
+                _sceneObject.Material.Roughness = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public float AlbedoR
+    {
+        get => _sceneObject.Material?.Albedo.X ?? 1.0f;
+        set
+        {
+            if (_sceneObject.Material != null)
+            {
+                var a = _sceneObject.Material.Albedo;
+                _sceneObject.Material.Albedo = new Vector4D<float>(value, a.Y, a.Z, a.W);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public float AlbedoG
+    {
+        get => _sceneObject.Material?.Albedo.Y ?? 1.0f;
+        set
+        {
+            if (_sceneObject.Material != null)
+            {
+                var a = _sceneObject.Material.Albedo;
+                _sceneObject.Material.Albedo = new Vector4D<float>(a.X, value, a.Z, a.W);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public float AlbedoB
+    {
+        get => _sceneObject.Material?.Albedo.Z ?? 1.0f;
+        set
+        {
+            if (_sceneObject.Material != null)
+            {
+                var a = _sceneObject.Material.Albedo;
+                _sceneObject.Material.Albedo = new Vector4D<float>(a.X, a.Y, value, a.W);
+                OnPropertyChanged();
+            }
+        }
+    }
 
     public SceneObjectViewModel(SceneObject sceneObject)
     {

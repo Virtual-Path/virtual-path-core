@@ -32,6 +32,9 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private int _msaaSamples = App.SettingsService?.GetMsaaSamples() ?? 4;
 
+    public bool HasSelectedObject => SelectedObject != null;
+    public bool HasNoSelectedObject => SelectedObject == null;
+
     public bool IsModified
     {
         get => _isModified;
@@ -49,10 +52,15 @@ public partial class MainViewModel : ViewModelBase
         _sceneService = sceneService;
     }
 
+    partial void OnSelectedObjectChanged(SceneObjectViewModel? value)
+    {
+        OnPropertyChanged(nameof(HasSelectedObject));
+        OnPropertyChanged(nameof(HasNoSelectedObject));
+    }
+
     public void SetSelectedObject(SceneObjectViewModel? vm)
     {
         SelectedObject = vm;
-        OnPropertyChanged(nameof(SelectedObject));
     }
 
     [RelayCommand]
