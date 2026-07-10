@@ -54,20 +54,33 @@ namespace VirtualPathCore.Services
         /// <param name="args">绘图服务所需的参数，包括 Renderer 对象</param>
         public void Load(object[] args)
         {
-            renderer = (Renderer)args[0];
-
-            MakeContext((proc) =>
+            if (args == null || args.Length < 1 || args[0] is not Renderer r)
             {
-                if (renderer.GetContext().Context.TryGetProcAddress(proc, out nint addr))
+                return;
+            }
+
+            renderer = r;
+
+            try
+            {
+                MakeContext((proc) =>
                 {
-                    return (void*)addr;
-                }
+                    if (renderer.GetContext().Context.TryGetProcAddress(proc, out nint addr))
+                    {
+                        return (void*)addr;
+                    }
 
-                return (void*)0;
+                    return (void*)0;
 
-            }, out rendererId);
+                }, out rendererId);
 
-            LoadScene(rendererId);
+                LoadScene(rendererId);
+            }
+            catch
+            {
+                // External native library not available - service will be inactive
+                rendererId = 0;
+            }
         }
 
         /// <summary>
@@ -76,6 +89,8 @@ namespace VirtualPathCore.Services
         /// <param name="deltaSeconds">自上次更新以来经过的时间，以秒为单位</param>
         public void Update(double deltaSeconds)
         {
+            if (rendererId == 0) return;
+
             Vector2D<float> size = new((float)renderer.Bounds.Width, (float)renderer.Bounds.Height);
 
             UpdateScene(rendererId, deltaSeconds, &size);
@@ -87,6 +102,8 @@ namespace VirtualPathCore.Services
         /// <param name="deltaSeconds">自上次渲染以来经过的时间，以秒为单位</param>
         public void Render(double deltaSeconds)
         {
+            if (rendererId == 0) return;
+
             DrawScene(rendererId, deltaSeconds);
         }
     }

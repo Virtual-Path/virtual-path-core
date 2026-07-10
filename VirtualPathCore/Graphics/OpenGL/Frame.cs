@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Silk.NET.OpenGLES;
 
 namespace VirtualPathCore.Graphics.OpenGL;
@@ -64,9 +65,17 @@ public class Frame : GraphicsResource
     /// <param name="disposing">指示是否显式释放资源</param>
     protected override void Destroy(bool disposing = false)
     {
-        GL.DeleteFramebuffer(Handle);
+        if (Handle != 0)
+        {
+            GL.DeleteFramebuffer(Handle);
+            Handle = 0;
+        }
 
-        GL.DeleteFramebuffer(Framebuffer);
+        if (Framebuffer != 0)
+        {
+            GL.DeleteFramebuffer(Framebuffer);
+        }
+
         GL.DeleteRenderbuffer(ColorBuffer);
         GL.DeleteRenderbuffer(DepthStencilBuffer);
 
@@ -120,6 +129,9 @@ public class Frame : GraphicsResource
             GL.BindFramebuffer(GLEnum.Framebuffer, Framebuffer);
             GL.FramebufferRenderbuffer(GLEnum.Framebuffer, GLEnum.ColorAttachment0, GLEnum.Renderbuffer, ColorBuffer);
             GL.FramebufferRenderbuffer(GLEnum.Framebuffer, GLEnum.DepthStencilAttachment, GLEnum.Renderbuffer, DepthStencilBuffer);
+
+            Debug.Assert(GL.CheckFramebufferStatus(GLEnum.Framebuffer) == GLEnum.FramebufferComplete, "Framebuffer is incomplete");
+
             GL.BindFramebuffer(GLEnum.Framebuffer, 0);
         }
     }

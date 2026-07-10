@@ -3,10 +3,9 @@ using System.IO;
 using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
-using Avalonia.Threading;
 using ReactiveUI;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
@@ -16,9 +15,9 @@ namespace VirtualPathCore.ViewModels
 {
     public class CreateProjectViewModel : ReactiveObject
     {
-        private string projectName;
-        private string projectDescription;
-        private string projectPath;
+        private string projectName = "";
+        private string projectDescription = "";
+        private string projectPath = "";
 
         /// <summary>
         /// 获取或设置项目名称。
@@ -98,15 +97,11 @@ namespace VirtualPathCore.ViewModels
 
             // 这里可以添加更多创建项目的逻辑，比如创建目录结构、文件等
 
-            // 关闭当前窗口并返回主窗口
-            var mainWindow = Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
-            mainWindow?.MainWindow?.Close();
-
-            // 重新打开主窗口
-            if (mainWindow?.MainWindow == null)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                mainWindow.MainWindow = new MainWindow();
-                mainWindow.MainWindow.Show();
+                desktop.MainWindow?.Close();
+                desktop.MainWindow = new MainWindow();
+                desktop.MainWindow.Show();
             }
         }
 
@@ -115,18 +110,22 @@ namespace VirtualPathCore.ViewModels
         /// </summary>
         private async void SelectProjectPath()
         {
-            Console.WriteLine("SelectProjectPath command triggered");
-            var dialog = new OpenFolderDialog
+            var mainWindow = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+                ? desktop.MainWindow
+                : null;
+
+            if (mainWindow == null) return;
+
+            var folders = await mainWindow.StorageProvider.OpenFolderPickerAsync(new Avalonia.Platform.Storage.FolderPickerOpenOptions
             {
                 Title = "Select Project Save Path",
-                Directory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) // 默认目录为我的文档
-            };
+                SuggestedStartLocation = await mainWindow.StorageProvider.TryGetFolderFromPathAsync(
+                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments))
+            });
 
-            var mainWindow = Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
-            var result = await dialog.ShowAsync(mainWindow?.MainWindow);
-            if (result != null)
+            if (folders.Count > 0)
             {
-                ProjectPath = result; // 更新项目路径
+                ProjectPath = folders[0].Path.LocalPath;
             }
         }
     }

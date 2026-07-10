@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Silk.NET.OpenGLES;
 
 namespace VirtualPathCore.Graphics.OpenGL;
@@ -8,6 +9,18 @@ namespace VirtualPathCore.Graphics.OpenGL;
 /// </summary>
 public unsafe class Mesh : GraphicsResource
 {
+    private static readonly Dictionary<string, nint> _offsetCache = new();
+
+    private static nint GetFieldOffset(string fieldName)
+    {
+        if (!_offsetCache.TryGetValue(fieldName, out nint offset))
+        {
+            offset = Marshal.OffsetOf<Vertex>(fieldName);
+            _offsetCache[fieldName] = offset;
+        }
+        return offset;
+    }
+
     /// <summary>
     /// 初始化 <see cref="Mesh"/> 类的新实例
     /// </summary>
@@ -69,11 +82,26 @@ public unsafe class Mesh : GraphicsResource
         GL.BindVertexArray(Handle);
 
         GL.BindBuffer(GLEnum.ArrayBuffer, ArrayBuffer);
-        GL.VertexAttribPointer(index, size, GLEnum.Float, false, (uint)sizeof(Vertex), (void*)Marshal.OffsetOf<Vertex>(fieldName));
+        GL.VertexAttribPointer(index, size, GLEnum.Float, false, (uint)sizeof(Vertex), (void*)GetFieldOffset(fieldName));
         GL.EnableVertexAttribArray(index);
         GL.BindBuffer(GLEnum.ArrayBuffer, 0);
 
         GL.BindVertexArray(0);
+    }
+
+    /// <summary>
+    /// 设置所有标准顶点属性指针。应在Mesh创建后调用一次。
+    /// </summary>
+    public void SetupAttributes(
+        int posLoc, int normalLoc, int tangentLoc, int bitangentLoc,
+        int colorLoc, int texCoordLoc)
+    {
+        if (posLoc >= 0) VertexAttributePointer((uint)posLoc, 3, nameof(Vertex.Position));
+        if (normalLoc >= 0) VertexAttributePointer((uint)normalLoc, 3, nameof(Vertex.Normal));
+        if (tangentLoc >= 0) VertexAttributePointer((uint)tangentLoc, 3, nameof(Vertex.Tangent));
+        if (bitangentLoc >= 0) VertexAttributePointer((uint)bitangentLoc, 3, nameof(Vertex.Bitangent));
+        if (colorLoc >= 0) VertexAttributePointer((uint)colorLoc, 4, nameof(Vertex.Color));
+        if (texCoordLoc >= 0) VertexAttributePointer((uint)texCoordLoc, 2, nameof(Vertex.TexCoord));
     }
 
     /// <summary>

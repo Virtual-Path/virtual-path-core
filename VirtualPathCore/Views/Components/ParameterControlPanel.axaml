@@ -13,30 +13,30 @@
 				<WrapPanel Margin="10">
 					<StackPanel Width="180" Margin="0,0,20,0" Spacing="6">
 						<TextBlock Text="MSAA Samples" Foreground="White"/>
-						<Slider Minimum="1" Maximum="16" Value="{Binding Samples}"/>
+						<Slider Minimum="1" Maximum="16" Value="{Binding MsaaSamples}"/>
 					</StackPanel>
 
-					<StackPanel Width="180" Margin="0,0,20,0" Spacing="6">
+					<StackPanel DataContext="{Binding SelectedObject}" Width="180" Margin="0,0,20,0" Spacing="6">
 						<TextBlock Text="Rotation Angle" Foreground="White"/>
 						<Slider Minimum="0" Maximum="360" Value="{Binding RotationAngle}"/>
 					</StackPanel>
 
-					<StackPanel Width="180" Margin="0,0,20,0" Spacing="6">
-						<TextBlock Text="Scale" Foreground="White"/>
-						<Slider Minimum="0.1" Maximum="3.0" Value="{Binding Scale}"/>
+					<StackPanel DataContext="{Binding SelectedObject}" Width="180" Margin="0,0,20,0" Spacing="6">
+						<TextBlock Text="Scale X" Foreground="White"/>
+						<Slider Minimum="0.1" Maximum="3.0" Value="{Binding ScaleX}"/>
 					</StackPanel>
 
-					<StackPanel Width="180" Margin="0,0,20,0" Spacing="6">
+					<StackPanel DataContext="{Binding SelectedObject}" Width="180" Margin="0,0,20,0" Spacing="6">
 						<TextBlock Text="Position X" Foreground="White"/>
 						<Slider Minimum="-10" Maximum="10" Value="{Binding PositionX}"/>
 					</StackPanel>
 
-					<StackPanel Width="180" Margin="0,0,20,0" Spacing="6">
+					<StackPanel DataContext="{Binding SelectedObject}" Width="180" Margin="0,0,20,0" Spacing="6">
 						<TextBlock Text="Position Y" Foreground="White"/>
 						<Slider Minimum="-10" Maximum="10" Value="{Binding PositionY}"/>
 					</StackPanel>
 
-					<StackPanel Width="180" Margin="0,0,0,0" Spacing="6">
+					<StackPanel DataContext="{Binding SelectedObject}" Width="180" Margin="0,0,0,0" Spacing="6">
 						<TextBlock Text="Position Z" Foreground="White"/>
 						<Slider Minimum="-10" Maximum="10" Value="{Binding PositionZ}"/>
 					</StackPanel>

@@ -22,10 +22,10 @@ namespace VirtualPathCore.Graphics.OpenGL
             GL.ShaderSource(Handle, source);
             GL.CompileShader(Handle);
 
-            string error = GL.GetShaderInfoLog(Handle);
-
-            if (!string.IsNullOrEmpty(error))
+            GL.GetShader(Handle, ShaderParameterName.CompileStatus, out int success);
+            if (success == 0)
             {
+                string error = GL.GetShaderInfoLog(Handle);
                 GL.DeleteShader(Handle);
 
                 throw new Exception($"{shaderType}: {error}");

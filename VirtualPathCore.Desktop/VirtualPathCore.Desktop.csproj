@@ -17,4 +17,9 @@
   <ItemGroup>
     <ProjectReference Include="..\VirtualPathCore\VirtualPathCore.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\VirtualPathCore\Resources\Shaders\*.vert" Link="Resources\Shaders\%(FileName)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\VirtualPathCore\Resources\Shaders\*.frag" Link="Resources\Shaders\%(FileName)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

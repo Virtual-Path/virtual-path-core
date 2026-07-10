@@ -32,10 +32,10 @@
 		</Grid.ColumnDefinitions>
 
 		<TextBlock Text="Project Name:" Grid.Row="0" Grid.Column="0" Margin="0,0,10,10" Foreground="White" VerticalAlignment="Center"/>
-		<TextBox Name="ProjectName" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10" Background="#444444" Foreground="White" BorderBrush="#666666" VerticalAlignment="Center"/>
+		<TextBox Text="{Binding ProjectName}" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10" Background="#444444" Foreground="White" BorderBrush="#666666" VerticalAlignment="Center"/>
 
 		<TextBlock Text="Project Description:" Grid.Row="1" Grid.Column="0" Margin="0,0,10,10" Foreground="White" VerticalAlignment="Center"/>
-		<TextBox Name="ProjectDescription" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10" TextWrapping="Wrap" Background="#444444" Foreground="White" BorderBrush="#666666" VerticalAlignment="Center"/>
+		<TextBox Text="{Binding ProjectDescription}" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10" TextWrapping="Wrap" Background="#444444" Foreground="White" BorderBrush="#666666" VerticalAlignment="Center"/>
 
 		<TextBlock Text="Project Path:" Grid.Row="2" Grid.Column="0" Margin="0,0,10,10" Foreground="White" VerticalAlignment="Center"/>
 		<Grid Grid.Row="2" Grid.Column="1" Margin="0,0,0,10">
@@ -44,7 +44,7 @@
 				<ColumnDefinition Width="Auto"/>
 			</Grid.ColumnDefinitions>
 
-			<TextBox Name="ProjectPath" Grid.Column="0" Margin="0,0,10,0" Background="#444444" Foreground="White" BorderBrush="#666666" VerticalAlignment="Center"/>
+			<TextBox Text="{Binding ProjectPath}" Grid.Column="0" Margin="0,0,10,0" Background="#444444" Foreground="White" BorderBrush="#666666" VerticalAlignment="Center"/>
 			<Button Content="Select Path" Grid.Column="1" Width="100" Margin="0,0,0,0" Command="{Binding SelectProjectPathCommand}" Background="#555555" Foreground="White" BorderBrush="#666666" VerticalAlignment="Center"/>
 		</Grid>
 

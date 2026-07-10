@@ -4,41 +4,99 @@
         xmlns:views="clr-namespace:VirtualPathCore.Views"
         xmlns:components="clr-namespace:VirtualPathCore.Views.Components"
         x:Class="VirtualPathCore.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
+        x:DataType="vm:MainViewModel"
         Icon="/Assets/Logo.png"
-        Title="VirtualPathCore"
+        Title="Virtual Path 3D Engine"
         WindowState="Maximized">
 
-	<Grid Background="#1E1E1E">
-		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="*"/>
-		</Grid.RowDefinitions>
+    <Grid Background="#1E1E1E">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="260"/>
+        </Grid.ColumnDefinitions>
 
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="250"/>
-			<ColumnDefinition Width="*"/>
-			<ColumnDefinition Width="250"/>
-		</Grid.ColumnDefinitions>
+        <components:AppMenu Grid.ColumnSpan="3" Grid.Row="0"
+                            ToggleSidebarClicked="ToggleSidebar"
+                            ToggleDockClicked="ToggleDock"/>
 
-		<!-- 封装后的菜单栏组件 -->
-		<components:AppMenu Grid.ColumnSpan="3" Grid.Row="0"
-							ToggleSidebarClicked="ToggleSidebar"
-							ToggleDockClicked="ToggleDock"/>
+        <!-- Scene Tree -->
+        <Border x:Name="SidebarBorder" Background="#252525" Grid.Row="1" Grid.Column="0" CornerRadius="4" Margin="4">
+            <Grid RowDefinitions="Auto,*">
+                <TextBlock Grid.Row="0" Text="Scene Objects" Foreground="White" FontWeight="Bold" Margin="8,6"/>
+                <ListBox Grid.Row="1" x:Name="SceneObjectList"
+                         ItemsSource="{Binding SceneObjects}"
+                         SelectedItem="{Binding SelectedObject, Mode=TwoWay}"
+                         Background="Transparent" BorderThickness="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SceneObjectViewModel">
+                            <Grid ColumnDefinitions="Auto,*,Auto" Margin="4,2">
+                                <TextBlock Grid.Column="0" Text="&#x25A0;" Foreground="#4CAF50" Margin="0,0,6,0"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Name}" Foreground="White"/>
+                                <CheckBox Grid.Column="2" IsChecked="{Binding IsVisible}" Foreground="#888"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
 
-		<!-- 左侧项目文件夹树 -->
-		<Border x:Name="SidebarBorder" Background="#333333" Grid.Row="1" Grid.Column="0" CornerRadius="5" Margin="5">
-			<views:ProjectFolderTree DataContext="{Binding}" />
-		</Border>
+        <!-- 3D Viewport -->
+        <Border x:Name="ContentBorder" Background="#1A1A1A" Grid.Row="1" Grid.Column="1" CornerRadius="4" Margin="4">
+            <views:MainView />
+        </Border>
 
-		<!-- 内容区 -->
-		<Border x:Name="ContentBorder" Background="#222222" Grid.Row="1" Grid.Column="1" CornerRadius="5" Margin="5">
-			<views:MainView />
-		</Border>
+        <!-- Properties Panel -->
+        <Border x:Name="AIChatBorder" Background="#252525" Grid.Row="1" Grid.Column="2" CornerRadius="4" Margin="4">
+            <Grid RowDefinitions="Auto,Auto,*,Auto">
+                <TextBlock Grid.Row="0" Text="Properties" Foreground="White" FontWeight="Bold" Margin="8,6"/>
 
-		<!-- 右侧 AI 聊天面板 -->
-		<Border x:Name="AIChatBorder" Background="#333333" Grid.Row="1" Grid.Column="2" CornerRadius="5" Margin="5">
-			<views:AIChatPanel DataContext="{Binding}" />
-		</Border>
-	</Grid>
+                <StackPanel Grid.Row="1" Margin="8" Spacing="4">
+                    <TextBlock Text="Add Object" Foreground="#AAA" FontSize="12"/>
+                    <WrapPanel>
+                        <Button Content="+ Cube" Command="{Binding AddCubeCommand}" Width="80" Height="26" Margin="0,0,4,0"/>
+                        <Button Content="+ Sphere" Command="{Binding AddSphereCommand}" Width="80" Height="26" Margin="0,0,4,0"/>
+                        <Button Content="&#x1F5D1;" Command="{Binding DeleteSelectedCommand}" Width="40" Height="26"/>
+                    </WrapPanel>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="2" Margin="8">
+                    <StackPanel Spacing="6" DataContext="{Binding SelectedObject}">
+                        <TextBlock Text="Transform" Foreground="#AAA" FontSize="12"/>
+                        <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="X" Foreground="#888" VerticalAlignment="Center" Margin="0,0,4,4"/>
+                            <Slider Grid.Row="0" Grid.Column="1" Minimum="-10" Maximum="10" Value="{Binding PositionX}" Margin="0,0,8,4"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Y" Foreground="#888" VerticalAlignment="Center" Margin="0,0,4,4"/>
+                            <Slider Grid.Row="0" Grid.Column="3" Minimum="-10" Maximum="10" Value="{Binding PositionY}" Margin="0,0,0,4"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Z" Foreground="#888" VerticalAlignment="Center" Margin="0,0,4,4"/>
+                            <Slider Grid.Row="1" Grid.Column="1" Minimum="-10" Maximum="10" Value="{Binding PositionZ}" Margin="0,0,8,4"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="S" Foreground="#888" VerticalAlignment="Center" Margin="0,0,4,4"/>
+                            <Slider Grid.Row="1" Grid.Column="3" Minimum="0.1" Maximum="5" Value="{Binding ScaleX}" Margin="0,0,0,4"/>
+                        </Grid>
+                        <TextBlock Text="No object selected" Foreground="#555" FontSize="12"
+                                   IsVisible="{Binding ., FallbackValue=True}"
+                                   x:Name="NoSelectionText"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <Button Grid.Row="3" Content="Clear Scene" Command="{Binding ClearSceneCommand}"
+                        Margin="8" Height="26"/>
+            </Grid>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Grid.ColumnSpan="3" Background="#1A1A1A" Padding="8,4">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Column="0" Text="{Binding Title}" Foreground="#666" FontSize="11"/>
+                <TextBlock Grid.Column="2" Foreground="#666" FontSize="11">
+                    <Run Text="MSAA: "/><Run Text="{Binding MsaaSamples}"/><Run Text="x"/>
+                </TextBlock>
+            </Grid>
+        </Border>
+    </Grid>
 </Window>

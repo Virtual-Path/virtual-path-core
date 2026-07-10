@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Silk.NET.Maths;
 using Silk.NET.OpenGLES;
@@ -17,23 +18,23 @@ public unsafe class RenderPipeline : GraphicsResource
     /// <param name="vs">顶点着色器</param>
     /// <param name="fs">片段着色器</param>
     /// <exception cref="Exception">当链接着色器程序失败时抛出</exception>
-    public RenderPipeline(IGraphicsHost<GL> graphicsHost, Shader vs, Shader fs) : base(graphicsHost)
-    {
-        Handle = GL.CreateProgram();
-
-        GL.AttachShader(Handle, vs.Handle);
-        GL.AttachShader(Handle, fs.Handle);
-        GL.LinkProgram(Handle);
-
-        string error = GL.GetProgramInfoLog(Handle);
-
-        if (!string.IsNullOrEmpty(error))
+        public RenderPipeline(IGraphicsHost<GL> graphicsHost, Shader vs, Shader fs) : base(graphicsHost)
         {
-            GL.DeleteProgram(Handle);
+            Handle = GL.CreateProgram();
 
-            throw new Exception($"Link: {error}");
+            GL.AttachShader(Handle, vs.Handle);
+            GL.AttachShader(Handle, fs.Handle);
+            GL.LinkProgram(Handle);
+
+            GL.GetProgram(Handle, GLEnum.LinkStatus, out int success);
+            if (success == 0)
+            {
+                string error = GL.GetProgramInfoLog(Handle);
+                GL.DeleteProgram(Handle);
+
+                throw new Exception($"Link: {error}");
+            }
         }
-    }
 
     /// <summary>
     /// 销毁渲染管线资源
@@ -54,6 +55,8 @@ public unsafe class RenderPipeline : GraphicsResource
         return GL.GetAttribLocation(Handle, name);
     }
 
+    private readonly Dictionary<string, int> _uniformCache = new();
+
     /// <summary>
     /// 获取指定统一变量的位置
     /// </summary>
@@ -61,7 +64,12 @@ public unsafe class RenderPipeline : GraphicsResource
     /// <returns>统一变量的位置</returns>
     public int GetUniformLocation(string name)
     {
-        return GL.GetUniformLocation(Handle, name);
+        if (!_uniformCache.TryGetValue(name, out int location))
+        {
+            location = GL.GetUniformLocation(Handle, name);
+            _uniformCache[name] = location;
+        }
+        return location;
     }
 
     /// <summary>
@@ -121,7 +129,7 @@ public unsafe class RenderPipeline : GraphicsResource
     /// <param name="value">要设置的值</param>
     public void SetUniform(string name, Matrix2X2<float> value)
     {
-        GL.UniformMatrix2(GetUniformLocation(name), 1, false, (float*)&value);
+        GL.UniformMatrix2(GetUniformLocation(name), 1, true, (float*)&value);
     }
 
     /// <summary>
@@ -131,7 +139,7 @@ public unsafe class RenderPipeline : GraphicsResource
     /// <param name="value">要设置的值</param>
     public void SetUniform(string name, Matrix3X3<float> value)
     {
-        GL.UniformMatrix3(GetUniformLocation(name), 1, false, (float*)&value);
+        GL.UniformMatrix3(GetUniformLocation(name), 1, true, (float*)&value);
     }
 
     /// <summary>
@@ -141,8 +149,10 @@ public unsafe class RenderPipeline : GraphicsResource
     /// <param name="value">要设置的值</param>
     public void SetUniform(string name, Matrix4X4<float> value)
     {
-        GL.UniformMatrix4(GetUniformLocation(name), 1, false, (float*)&value);
+        GL.UniformMatrix4(GetUniformLocation(name), 1, true, (float*)&value);
     }
+
+    private static readonly Dictionary<Type, FieldInfo[]> _fieldCache = new();
 
     /// <summary>
     /// 设置结构体类型的统一变量
@@ -153,51 +163,36 @@ public unsafe class RenderPipeline : GraphicsResource
     /// <exception cref="NotSupportedException">当结构体包含不支持的类型时抛出</exception>
     public void SetUniform<T>(string name, T value) where T : struct
     {
-        if (!string.IsNullOrEmpty(name))
+        string prefix = string.IsNullOrEmpty(name) ? "" : $"{name}.";
+        Type type = typeof(T);
+
+        if (!_fieldCache.TryGetValue(type, out FieldInfo[]? fields))
         {
-            name = $"{name}.";
+            fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
+            _fieldCache[type] = fields;
         }
 
-        foreach (FieldInfo field in value.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
+        foreach (FieldInfo field in fields)
         {
             Type fieldType = field.FieldType;
+            string uniformName = $"{prefix}{field.Name}";
 
             if (fieldType == typeof(int))
-            {
-                SetUniform($"{name}{field.Name}", (int)field.GetValue(value)!);
-            }
+                SetUniform(uniformName, (int)field.GetValue(value)!);
             else if (fieldType == typeof(float))
-            {
-                SetUniform($"{name}{field.Name}", (float)field.GetValue(value)!);
-            }
+                SetUniform(uniformName, (float)field.GetValue(value)!);
             else if (fieldType == typeof(Vector2D<float>))
-            {
-                SetUniform($"{name}{field.Name}", (Vector2D<float>)field.GetValue(value)!);
-            }
+                SetUniform(uniformName, (Vector2D<float>)field.GetValue(value)!);
             else if (fieldType == typeof(Vector3D<float>))
-            {
-                SetUniform($"{name}{field.Name}", (Vector3D<float>)field.GetValue(value)!);
-            }
+                SetUniform(uniformName, (Vector3D<float>)field.GetValue(value)!);
             else if (fieldType == typeof(Vector4D<float>))
-            {
-                SetUniform($"{name}{field.Name}", (Vector4D<float>)field.GetValue(value)!);
-            }
+                SetUniform(uniformName, (Vector4D<float>)field.GetValue(value)!);
             else if (fieldType == typeof(Matrix2X2<float>))
-            {
-                SetUniform($"{name}{field.Name}", (Matrix2X2<float>)field.GetValue(value)!);
-            }
+                SetUniform(uniformName, (Matrix2X2<float>)field.GetValue(value)!);
             else if (fieldType == typeof(Matrix3X3<float>))
-            {
-                SetUniform($"{name}{field.Name}", (Matrix3X3<float>)field.GetValue(value)!);
-            }
+                SetUniform(uniformName, (Matrix3X3<float>)field.GetValue(value)!);
             else if (fieldType == typeof(Matrix4X4<float>))
-            {
-                SetUniform($"{name}{field.Name}", (Matrix4X4<float>)field.GetValue(value)!);
-            }
-            else
-            {
-                throw new NotSupportedException($"不支持的类型：{fieldType}");
-            }
+                SetUniform(uniformName, (Matrix4X4<float>)field.GetValue(value)!);
         }
     }
 
@@ -231,5 +226,6 @@ public unsafe class RenderPipeline : GraphicsResource
     public void Unbind()
     {
         GL.UseProgram(0);
+        GL.Disable(GLEnum.DepthTest);
     }
 }

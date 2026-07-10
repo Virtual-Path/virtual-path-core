@@ -7,37 +7,19 @@
              mc:Ignorable="d"
              x:Class="VirtualPathCore.Views.MainView"
              x:DataType="vm:MainViewModel"
-			 xmlns:views="using:VirtualPathCore.Views"
-			 >
+             xmlns:views="using:VirtualPathCore.Views">
 
-	<Design.DataContext>
-		<vm:MainViewModel />
-	</Design.DataContext>
+    <Grid RowDefinitions="*,Auto" ColumnDefinitions="*">
+        <Border Grid.Row="0" Margin="6" Background="#222" CornerRadius="8" Padding="6">
+            <Grid>
+                <opengl:Renderer x:Name="glRenderer1" />
+                <StackPanel VerticalAlignment="Top" Margin="8" Spacing="4" Opacity="0.8">
+                    <TextBlock Foreground="White" FontWeight="Bold" FontSize="14" Text="3D Viewport" />
+                    <TextBlock Foreground="#AAA" FontSize="11" Text="Left-drag: Orbit | Scroll: Zoom" />
+                </StackPanel>
+            </Grid>
+        </Border>
 
-	<Grid RowDefinitions="*,Auto" ColumnDefinitions="1* 1*">
-		<!-- 左侧渲染卡片 -->
-		<Border Grid.Row="0" Grid.Column="0" Margin="12" Background="#222" CornerRadius="12" Padding="12">
-			<Grid>
-				<opengl:Renderer x:Name="glRenderer1" />
-				<StackPanel VerticalAlignment="Top" Margin="10" Spacing="4">
-					<TextBlock Foreground="White" FontWeight="Bold" FontSize="16" Text="Renderer 1 - Blender C#" />
-					<Button Content="Execute Action" Width="100" Margin="0,10,0,0"/>
-				</StackPanel>
-			</Grid>
-		</Border>
-
-		<!-- 右侧渲染卡片 -->
-		<Border Grid.Row="0" Grid.Column="1" Margin="12" Background="#222" CornerRadius="12" Padding="12">
-			<Grid>
-				<opengl:Renderer x:Name="glRenderer2" Samples="{Binding ElementName=glRenderer1, Path=Samples}" />
-				<StackPanel VerticalAlignment="Top" Margin="10" Spacing="4">
-					<TextBlock Foreground="White" FontWeight="Bold" FontSize="16" Text="Renderer 2 - Blender C++" />
-					<Button Content="Execute Action" Width="100" Margin="0,10,0,0"/>
-				</StackPanel>
-			</Grid>
-		</Border>
-
-		<!-- 底部参数控制面板 -->
-		<views:ParameterControlPanel Grid.Row="1" Grid.ColumnSpan="2" />
-	</Grid>
+        <views:ParameterControlPanel Grid.Row="1" />
+    </Grid>
 </UserControl>

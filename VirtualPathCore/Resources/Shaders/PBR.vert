@@ -7,6 +7,10 @@ layout(location = 3) in vec3 In_Bitangent;
 layout(location = 4) in vec4 In_Color;
 layout(location = 5) in vec2 In_TexCoord;
 
+out vec3 VS_WorldPos;
+out vec3 VS_Normal;
+out vec2 VS_UV;
+
 uniform mat4 Model;
 uniform mat4 View;
 uniform mat4 Projection;
@@ -16,5 +20,10 @@ uniform mat4 WorldToObject;
 
 void main()
 {
+    vec4 worldPos = ObjectToWorld * vec4(In_Position, 1.0);
+    VS_WorldPos = worldPos.xyz;
+    VS_Normal = normalize(mat3(WorldToObject) * In_Normal);
+    VS_UV = In_TexCoord;
+
     gl_Position = ObjectToClip * vec4(In_Position, 1.0);
 }

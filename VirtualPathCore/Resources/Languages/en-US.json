@@ -1,0 +1,58 @@
+{
+  "App": {
+    "Title": "Virtual Path Engine",
+    "Version": "Version"
+  },
+  "Menu": {
+    "File": "File",
+    "Edit": "Edit",
+    "View": "View",
+    "Tools": "Tools",
+    "Help": "Help",
+    "NewProject": "New Project",
+    "OpenProject": "Open Project",
+    "Save": "Save",
+    "SaveAs": "Save As",
+    "Exit": "Exit",
+    "Settings": "Settings",
+    "About": "About"
+  },
+  "Settings": {
+    "Title": "Settings",
+    "General": "General",
+    "Language": "Language",
+    "Theme": "Theme",
+    "ThemeLight": "Light",
+    "ThemeDark": "Dark",
+    "ThemeSystem": "System",
+    "Save": "Save",
+    "Cancel": "Cancel",
+    "Apply": "Apply",
+    "RestartRequired": "Some settings will take effect after restarting the application"
+  },
+  "Startup": {
+    "Welcome": "Welcome to Virtual Path Engine",
+    "NewProject": "New Project",
+    "OpenProject": "Open Project",
+    "RecentProjects": "Recent Projects",
+    "NoRecentProjects": "No recent projects"
+  },
+  "Common": {
+    "OK": "OK",
+    "Cancel": "Cancel",
+    "Yes": "Yes",
+    "No": "No",
+    "Close": "Close",
+    "Confirm": "Confirm",
+    "Error": "Error",
+    "Warning": "Warning",
+    "Info": "Information",
+    "Success": "Success"
+  },
+  "Project": {
+    "Name": "Project Name",
+    "Path": "Path",
+    "Create": "Create",
+    "Browse": "Browse"
+  }
+}

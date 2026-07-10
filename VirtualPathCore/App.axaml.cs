@@ -1,11 +1,14 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using VirtualPathCore.Services;
 
 namespace VirtualPathCore
 {
     public class App : Application
     {
+        public static SettingsService SettingsService { get; } = new();
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
