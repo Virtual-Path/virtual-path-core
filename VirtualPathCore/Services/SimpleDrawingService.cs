@@ -72,7 +72,6 @@ namespace VirtualPathCore.Services
                 orbitController.Target = new Vector3D<float>(-0.9f, 0.5f, 0.0f);
             }
 
-            renderer.Samples = Math.Max(renderer.Samples, 4);
             _isInitialized = true;
         }
 

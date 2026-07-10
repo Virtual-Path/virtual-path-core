@@ -1,28 +1,25 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
-using VirtualPathCore.Helpers;
-using Silk.NET.Maths;
 using Silk.NET.OpenGLES;
 
 namespace VirtualPathCore.Graphics.OpenGL;
 
-public class Renderer : OpenGlControlBase, IGraphicsHost<GL>
+public unsafe class Renderer : OpenGlControlBase, IGraphicsHost<GL>
 {
-    public static readonly StyledProperty<int> SamplesProperty = AvaloniaProperty.Register<Renderer, int>("Samples", 4);
-
     private readonly Stopwatch _stopwatch = new();
 
     private GL? context;
-    private Frame? frame;
 
-    private RenderPipeline? canvasPipeline;
-    private Mesh[]? canvasMeshes;
+    private uint _sceneFbo;
+    private uint _sceneColorTex;
+    private uint _sceneDepthRbo;
+    private int _sceneW, _sceneH;
+    private bool _sceneDirty = true;
 
     public event Action? OnLoad;
     public event Action? OnUnload;
@@ -30,18 +27,72 @@ public class Renderer : OpenGlControlBase, IGraphicsHost<GL>
     public event DeltaAction? OnRender;
     public event SizeAction? OnResize;
 
-    public int Samples
-    {
-        get { return GetValue(SamplesProperty); }
-        set { SetValue(SamplesProperty, value); }
-    }
-
     public int PixelWidth => (int)(Bounds.Width * (VisualRoot?.RenderScaling ?? 1.0));
     public int PixelHeight => (int)(Bounds.Height * (VisualRoot?.RenderScaling ?? 1.0));
 
     public void RequestRender()
     {
+        _sceneDirty = true;
         RequestNextFrameRendering();
+    }
+
+    private void EnsureSceneFbo(int w, int h)
+    {
+        if (_sceneFbo != 0 && w == _sceneW && h == _sceneH)
+            return;
+
+        var gl = context!;
+        DestroySceneFbo();
+
+        _sceneW = w;
+        _sceneH = h;
+        _sceneDirty = true;
+
+        _sceneColorTex = gl.GenTexture();
+        gl.BindTexture(GLEnum.Texture2D, _sceneColorTex);
+        gl.TexImage2D(GLEnum.Texture2D, 0, (int)GLEnum.Rgb8, (uint)w, (uint)h, 0, GLEnum.Rgb, GLEnum.UnsignedByte, null);
+        gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMinFilter, (int)GLEnum.Linear);
+        gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMagFilter, (int)GLEnum.Linear);
+        gl.BindTexture(GLEnum.Texture2D, 0);
+
+        _sceneDepthRbo = gl.GenRenderbuffer();
+        gl.BindRenderbuffer(GLEnum.Renderbuffer, _sceneDepthRbo);
+        gl.RenderbufferStorage(GLEnum.Renderbuffer, GLEnum.DepthComponent16, (uint)w, (uint)h);
+        gl.BindRenderbuffer(GLEnum.Renderbuffer, 0);
+
+        _sceneFbo = gl.GenFramebuffer();
+        gl.BindFramebuffer(GLEnum.Framebuffer, _sceneFbo);
+        gl.FramebufferTexture2D(GLEnum.Framebuffer, GLEnum.ColorAttachment0, GLEnum.Texture2D, _sceneColorTex, 0);
+        gl.FramebufferRenderbuffer(GLEnum.Framebuffer, GLEnum.DepthAttachment, GLEnum.Renderbuffer, _sceneDepthRbo);
+        Debug.Assert(gl.CheckFramebufferStatus(GLEnum.Framebuffer) == GLEnum.FramebufferComplete, "Scene FBO incomplete");
+        gl.BindFramebuffer(GLEnum.Framebuffer, 0);
+    }
+
+    private void DestroySceneFbo()
+    {
+        var gl = context!;
+        if (_sceneFbo != 0) { gl.DeleteFramebuffer(_sceneFbo); _sceneFbo = 0; }
+        if (_sceneColorTex != 0) { gl.DeleteTexture(_sceneColorTex); _sceneColorTex = 0; }
+        if (_sceneDepthRbo != 0) { gl.DeleteRenderbuffer(_sceneDepthRbo); _sceneDepthRbo = 0; }
+    }
+
+    private void RenderScene()
+    {
+        var gl = context!;
+        gl.BindFramebuffer(GLEnum.Framebuffer, _sceneFbo);
+        gl.Viewport(0, 0, (uint)_sceneW, (uint)_sceneH);
+        OnRender?.Invoke(_stopwatch.Elapsed.TotalSeconds);
+    }
+
+    private void BlitToFb(uint targetFb)
+    {
+        var gl = context!;
+        gl.BindFramebuffer(GLEnum.ReadFramebuffer, _sceneFbo);
+        gl.BindFramebuffer(GLEnum.DrawFramebuffer, targetFb);
+        gl.BlitFramebuffer(0, 0, _sceneW, _sceneH, 0, 0, _sceneW, _sceneH,
+            (uint)GLEnum.ColorBufferBit, GLEnum.Nearest);
+        gl.BindFramebuffer(GLEnum.ReadFramebuffer, 0);
+        gl.BindFramebuffer(GLEnum.DrawFramebuffer, 0);
     }
 
     protected override void OnOpenGlInit(GlInterface gl)
@@ -51,30 +102,12 @@ public class Renderer : OpenGlControlBase, IGraphicsHost<GL>
         try
         {
             context ??= GL.GetApi(gl.GetProcAddress);
-            frame ??= new Frame(this);
-
-            string shaderDir = Path.Combine(AppContext.BaseDirectory, "Resources", "Shaders");
-
-            using Shader canvasVs = new(this, ShaderType.VertexShader, File.ReadAllText(Path.Combine(shaderDir, "Canvas.vert")));
-            using Shader canvasFs = new(this, ShaderType.FragmentShader, File.ReadAllText(Path.Combine(shaderDir, "Canvas.frag")));
-            canvasPipeline = new RenderPipeline(this, canvasVs, canvasFs);
-
-            MeshFactory.GetCanvas(out Vertex[] cv, out uint[] ci);
-            canvasMeshes = [new(this, cv, ci)];
-            canvasMeshes[0].SetupAttributes(
-                canvasPipeline.GetAttribLocation("In_Position"),
-                canvasPipeline.GetAttribLocation("In_Normal"),
-                canvasPipeline.GetAttribLocation("In_Tangent"),
-                canvasPipeline.GetAttribLocation("In_Bitangent"),
-                canvasPipeline.GetAttribLocation("In_Color"),
-                canvasPipeline.GetAttribLocation("In_TexCoord"));
-
             OnLoad?.Invoke();
             OnResize?.Invoke(PixelWidth, PixelHeight);
+            RequestRender();
         }
         catch
         {
-            // OpenGL init failed — rendering will not proceed
         }
     }
 
@@ -83,34 +116,31 @@ public class Renderer : OpenGlControlBase, IGraphicsHost<GL>
         _stopwatch.Stop();
 
         OnUnload?.Invoke();
-
-        if (canvasMeshes != null)
-        {
-            foreach (Mesh mesh in canvasMeshes)
-            {
-                mesh.Dispose();
-            }
-        }
-        canvasPipeline?.Dispose();
-        frame?.Dispose();
+        DestroySceneFbo();
         context?.Dispose();
-
-        frame = null;
         context = null;
     }
 
     protected override void OnOpenGlRender(GlInterface gl, int fb)
     {
-        if (context == null || frame == null || canvasPipeline == null || canvasMeshes == null)
+        if (context == null)
             return;
 
         int w = PixelWidth, h = PixelHeight;
 
-        context.BindFramebuffer(GLEnum.Framebuffer, (uint)fb);
-        context.Viewport(0, 0, (uint)w, (uint)h);
-
         OnUpdate?.Invoke(_stopwatch.Elapsed.TotalSeconds);
-        OnRender?.Invoke(_stopwatch.Elapsed.TotalSeconds);
+
+        EnsureSceneFbo(w, h);
+
+        if (_sceneDirty)
+        {
+            _sceneDirty = false;
+            RenderScene();
+        }
+
+        BlitToFb((uint)fb);
+
+        RequestNextFrameRendering();
     }
 
     public event Action<float, float>? OnMouseDown;
