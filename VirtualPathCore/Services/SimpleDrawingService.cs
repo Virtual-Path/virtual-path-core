@@ -123,6 +123,9 @@ namespace VirtualPathCore.Services
             gl.ClearColor(0.12f, 0.12f, 0.14f, 1.0f);
             gl.Clear((uint)GLEnum.ColorBufferBit | (uint)GLEnum.DepthBufferBit);
 
+            gl.Enable(GLEnum.CullFace);
+            gl.CullFace(GLEnum.Back);
+
             pbrPipeline.Bind();
 
             var lightVec = Vector3D.Normalize(new Vector3D<float>(LightDirX, LightDirY, LightDirZ));
@@ -159,6 +162,8 @@ namespace VirtualPathCore.Services
             }
 
             pbrPipeline.Unbind();
+
+            gl.Disable(GLEnum.CullFace);
         }
 
         public void OnMouseDown(float x, float y)
