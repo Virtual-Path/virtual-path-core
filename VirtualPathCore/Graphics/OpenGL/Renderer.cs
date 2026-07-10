@@ -136,28 +136,32 @@ public class Renderer : OpenGlControlBase, IGraphicsHost<GL>
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
-        base.OnPointerPressed(e);
         var point = e.GetCurrentPoint(this);
         OnMouseDown?.Invoke((float)point.Position.X, (float)point.Position.Y);
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
-        base.OnPointerReleased(e);
         OnMouseUp?.Invoke();
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
-        base.OnPointerMoved(e);
         var point = e.GetCurrentPoint(this);
         OnMouseMove?.Invoke((float)point.Position.X, (float)point.Position.Y);
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
-        base.OnPointerWheelChanged(e);
         OnScroll?.Invoke((float)e.Delta.Y);
+    }
+
+    protected override void OnPointerEntered(PointerEventArgs e)
+    {
+    }
+
+    protected override void OnPointerExited(PointerEventArgs e)
+    {
     }
 
     protected override void OnSizeChanged(SizeChangedEventArgs e)
