@@ -13,6 +13,15 @@ public partial class SceneObjectViewModel : ObservableObject
 
     public SceneObject SceneObject => _sceneObject;
 
+    [ObservableProperty]
+    private bool _isExpanded = true;
+
+    [ObservableProperty]
+    private bool _isVisibleInTree = true;
+
+    [ObservableProperty]
+    private bool _isSelected;
+
     public string Name
     {
         get => _sceneObject.Name;
@@ -101,6 +110,39 @@ public partial class SceneObjectViewModel : ObservableObject
         }
     }
 
+    public float RotationX
+    {
+        get => _sceneObject.Transform.Rotation.X;
+        set
+        {
+            var r = _sceneObject.Transform.Rotation;
+            _sceneObject.Transform.Rotation = new Quaternion<float>(value, r.Y, r.Z, r.W);
+            OnPropertyChanged();
+        }
+    }
+
+    public float RotationY
+    {
+        get => _sceneObject.Transform.Rotation.Y;
+        set
+        {
+            var r = _sceneObject.Transform.Rotation;
+            _sceneObject.Transform.Rotation = new Quaternion<float>(r.X, value, r.Z, r.W);
+            OnPropertyChanged();
+        }
+    }
+
+    public float RotationZ
+    {
+        get => _sceneObject.Transform.Rotation.Z;
+        set
+        {
+            var r = _sceneObject.Transform.Rotation;
+            _sceneObject.Transform.Rotation = new Quaternion<float>(r.X, r.Y, value, r.W);
+            OnPropertyChanged();
+        }
+    }
+
     public float Metallic
     {
         get => _sceneObject.Material?.Metallic ?? 0.0f;
@@ -169,6 +211,38 @@ public partial class SceneObjectViewModel : ObservableObject
         }
     }
 
+    // Texture file path properties
+    public string? AlbedoMapPath
+    {
+        get => _sceneObject.Material?.GetCustomProperty<string>("AlbedoMapPath");
+        set
+        {
+            if (_sceneObject.Material != null)
+            {
+                _sceneObject.Material.SetCustomProperty("AlbedoMapPath", value);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string? NormalMapPath
+    {
+        get => _sceneObject.Material?.GetCustomProperty<string>("NormalMapPath");
+        set
+        {
+            if (_sceneObject.Material != null)
+            {
+                _sceneObject.Material.SetCustomProperty("NormalMapPath", value);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool HasAlbedoMap => !string.IsNullOrEmpty(AlbedoMapPath);
+    public bool HasNormalMap => !string.IsNullOrEmpty(NormalMapPath);
+
+    public bool IsLight => _sceneObject.GetCustomProperty<Light>("Light") != null;
+
     public SceneObjectViewModel(SceneObject sceneObject)
     {
         _sceneObject = sceneObject;
@@ -188,6 +262,22 @@ public partial class SceneObjectViewModel : ObservableObject
     {
         _sceneObject.RemoveChild(child.SceneObject);
         Children.Remove(child);
+    }
+
+    public SceneObjectViewModel Clone()
+    {
+        var clone = new SceneObject(_sceneObject.MeshBlueprint != null
+            ? new MeshData((Vertex[])_sceneObject.MeshBlueprint.Vertices.Clone(), (uint[])_sceneObject.MeshBlueprint.Indices.Clone())
+            : null!)
+        {
+            Name = _sceneObject.Name + "_copy",
+            Active = _sceneObject.Active,
+            Transform = { Position = _sceneObject.Transform.Position, Rotation = _sceneObject.Transform.Rotation, Scale = _sceneObject.Transform.Scale },
+            Material = _sceneObject.Material?.Clone()
+        };
+        if (_sceneObject.Mesh != null)
+            clone.Mesh = _sceneObject.Mesh;
+        return new SceneObjectViewModel(clone);
     }
 
     public static SceneObjectViewModel CreateCube(string name = "Cube")

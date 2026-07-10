@@ -114,9 +114,12 @@ public class Camera
 
     public void Reset()
     {
-        Position = new Vector3D<float>(0, 0, 5);
+        Position = new Vector3D<float>(0, 2, 8);
         Pitch = 0;
         Yaw = -90;
+        _pitch = 0;
+        _yaw = -MathHelper.PiOver2;
+        UpdateVectors();
     }
 
     private void UpdateVectors()

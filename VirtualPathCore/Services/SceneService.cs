@@ -16,6 +16,7 @@ public class SceneService
     public Scene Scene => _scene;
     public ObservableCollection<SceneObjectViewModel> SceneObjects { get; } = new();
     public SceneObjectViewModel? SelectedObject { get; set; }
+    public GizmoMode GizmoMode { get; set; } = GizmoMode.Translate;
 
     public SceneService(IGraphicsHost<GL>? graphicsHost = null)
     {
@@ -41,6 +42,11 @@ public class SceneService
         RequestRender();
     }
 
+    public void SubscribeTo(SceneObjectViewModel vm)
+    {
+        vm.PropertyChanged += OnViewModelChanged;
+    }
+
     private void Subscribe(SceneObjectViewModel vm)
     {
         vm.PropertyChanged += OnViewModelChanged;
@@ -64,6 +70,16 @@ public class SceneService
     public SceneObjectViewModel AddSphere(string name = "Sphere")
     {
         var vm = SceneObjectViewModel.CreateSphere(name);
+        _scene.AddObject(vm.SceneObject);
+        SceneObjects.Add(vm);
+        Subscribe(vm);
+        RequestRender();
+        return vm;
+    }
+
+    public SceneObjectViewModel DuplicateObject(SceneObjectViewModel source)
+    {
+        var vm = source.Clone();
         _scene.AddObject(vm.SceneObject);
         SceneObjects.Add(vm);
         Subscribe(vm);

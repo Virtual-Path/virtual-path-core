@@ -5,6 +5,7 @@ precision highp float;
 in vec3 VS_WorldPos;
 in vec3 VS_Normal;
 in vec2 VS_UV;
+in mat3 VS_TBN;
 
 layout(location = 0) out vec4 Out_Color;
 
@@ -19,6 +20,11 @@ uniform float Light0Intensity;
 
 uniform vec3 CameraPos;
 
+uniform int HasAlbedoMap;
+uniform sampler2D AlbedoMap;
+uniform int HasNormalMap;
+uniform sampler2D NormalMap;
+
 void main()
 {
     vec3 N = normalize(VS_Normal);
@@ -27,16 +33,26 @@ void main()
     vec3 lightDir = normalize(-Light0Dir);
     vec3 lightColor = Light0Color * Light0Intensity;
 
-    vec3 ambient = 0.03 * Albedo.rgb;
+    vec4 albedo = Albedo;
+    if (HasAlbedoMap == 1)
+        albedo = texture(AlbedoMap, VS_UV);
+
+    if (HasNormalMap == 1)
+    {
+        vec3 tangentNormal = texture(NormalMap, VS_UV).xyz * 2.0 - 1.0;
+        N = normalize(VS_TBN * tangentNormal);
+    }
+
+    vec3 ambient = 0.03 * albedo.rgb;
 
     float diff = max(dot(N, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor * Albedo.rgb;
+    vec3 diffuse = diff * lightColor * albedo.rgb;
 
     vec3 H = normalize(lightDir + V);
     float spec = pow(max(dot(N, H), 0.0), (1.0 - Roughness) * 128.0 + 1.0);
-    vec3 specColor = spec * lightColor * mix(vec3(1.0), Albedo.rgb, Metallic);
+    vec3 specColor = spec * lightColor * mix(vec3(1.0), albedo.rgb, Metallic);
 
     vec3 color = ambient + (1.0 - AmbientIntensity) * (diffuse + specColor);
 
-    Out_Color = vec4(color, Albedo.a);
+    Out_Color = vec4(color, albedo.a);
 }

@@ -9,12 +9,33 @@
              x:DataType="vm:MainViewModel"
              xmlns:views="using:VirtualPathCore.Views">
 
-    <Border Margin="6" Background="#222" CornerRadius="8" Padding="6">
+    <Border Margin="6" Background="#222" CornerRadius="8" Padding="0">
         <Grid>
             <opengl:Renderer x:Name="glRenderer1" />
-            <StackPanel VerticalAlignment="Top" Margin="8" Spacing="4" Opacity="0.8">
-                <TextBlock Foreground="White" FontWeight="Bold" FontSize="14" Text="3D Viewport" />
-                <TextBlock Foreground="#AAA" FontSize="11" Text="Left-drag: Orbit | Scroll: Zoom" />
+
+            <!-- Viewport labels -->
+            <TextBlock Text="Perspective" Foreground="#AAA" FontSize="11"
+                       VerticalAlignment="Top" HorizontalAlignment="Left" Margin="8,6"
+                       FontWeight="Bold"/>
+            <TextBlock Text="Top" Foreground="#AAA" FontSize="11"
+                       VerticalAlignment="Top" HorizontalAlignment="Right" Margin="8,6"
+                       FontWeight="Bold"/>
+            <TextBlock Text="Front" Foreground="#AAA" FontSize="11"
+                       VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="8,6"
+                       FontWeight="Bold"/>
+            <TextBlock Text="Right" Foreground="#AAA" FontSize="11"
+                       VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="8,6"
+                       FontWeight="Bold"/>
+
+            <!-- Viewport dividers -->
+            <Rectangle VerticalAlignment="Center" Height="2" HorizontalAlignment="Stretch"
+                       Fill="#444" IsHitTestVisible="False" Margin="0"/>
+            <Rectangle HorizontalAlignment="Center" Width="2" VerticalAlignment="Stretch"
+                       Fill="#444" IsHitTestVisible="False" Margin="0"/>
+
+            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="8,4" Spacing="2" Opacity="0.6">
+                <TextBlock Foreground="White" FontWeight="Bold" FontSize="12" Text="3D Viewport" HorizontalAlignment="Center"/>
+                <TextBlock Foreground="#AAA" FontSize="10" Text="Left-drag: Orbit | Scroll: Zoom | F: Frame" HorizontalAlignment="Center"/>
             </StackPanel>
         </Grid>
     </Border>

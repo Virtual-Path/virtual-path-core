@@ -10,6 +10,7 @@ layout(location = 5) in vec2 In_TexCoord;
 out vec3 VS_WorldPos;
 out vec3 VS_Normal;
 out vec2 VS_UV;
+out mat3 VS_TBN;
 
 uniform mat4 Model;
 uniform mat4 View;
@@ -24,6 +25,11 @@ void main()
     VS_WorldPos = worldPos.xyz;
     VS_Normal = normalize(mat3(WorldToObject) * In_Normal);
     VS_UV = In_TexCoord;
+
+    vec3 T = normalize(vec3(ObjectToWorld * vec4(In_Tangent, 0.0)));
+    vec3 B = normalize(vec3(ObjectToWorld * vec4(In_Bitangent, 0.0)));
+    vec3 N = normalize(vec3(ObjectToWorld * vec4(In_Normal, 0.0)));
+    VS_TBN = mat3(T, B, N);
 
     gl_Position = ObjectToClip * vec4(In_Position, 1.0);
 }

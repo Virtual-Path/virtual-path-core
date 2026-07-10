@@ -21,6 +21,13 @@ public class SceneObject : IDisposable
 {
     private bool _disposed;
 
+    public SceneObject() { }
+
+    public SceneObject(MeshData meshBlueprint)
+    {
+        MeshBlueprint = meshBlueprint;
+    }
+
     public string Name { get; set; } = "Object";
 
     public bool Active { get; set; } = true;
@@ -34,6 +41,20 @@ public class SceneObject : IDisposable
     public Material? Material { get; set; }
 
     public int Layer { get; set; } = 0;
+
+    private readonly Dictionary<string, object> _customProperties = new();
+
+    public T? GetCustomProperty<T>(string name) where T : class
+    {
+        if (_customProperties.TryGetValue(name, out var value) && value is T result)
+            return result;
+        return null;
+    }
+
+    public void SetCustomProperty<T>(string name, T value) where T : class
+    {
+        _customProperties[name] = value;
+    }
 
     public SceneObject? Parent
     {
@@ -129,9 +150,11 @@ public class SceneObject : IDisposable
     }
 }
 
-public class Scene : IDisposable
+public class Scene : IDisposable, System.ComponentModel.INotifyPropertyChanged
 {
     private bool _disposed;
+
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
 
     public string Name { get; set; } = "Scene";
 
@@ -144,6 +167,21 @@ public class Scene : IDisposable
     public Camera? MainCamera { get; set; }
 
     public LightingData Lighting { get; } = new();
+
+    public bool ShowGrid
+    {
+        get => _showGrid;
+        set
+        {
+            if (_showGrid == value) return;
+            _showGrid = value;
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(ShowGrid)));
+        }
+    }
+    private bool _showGrid = true;
+    public float GridSize { get; set; } = 10.0f;
+    public int GridSubdivisions { get; set; } = 10;
+    public Vector4D<float> GridColor { get; set; } = new(0.3f, 0.3f, 0.35f, 1.0f);
 
     public SceneObject CreateObject(string name = "Object")
     {

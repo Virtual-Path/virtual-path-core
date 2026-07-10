@@ -3,6 +3,7 @@
         xmlns:vm="using:VirtualPathCore.ViewModels"
         xmlns:views="clr-namespace:VirtualPathCore.Views"
         xmlns:components="clr-namespace:VirtualPathCore.Views.Components"
+        xmlns:helpers="clr-namespace:VirtualPathCore.Helpers"
         x:Class="VirtualPathCore.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/Logo.png"
@@ -12,27 +13,51 @@
     <Grid Background="#1E1E1E">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="220"/>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="260"/>
+            <ColumnDefinition Width="280"/>
         </Grid.ColumnDefinitions>
 
         <components:AppMenu Grid.ColumnSpan="3" Grid.Row="0"
                             ToggleSidebarClicked="ToggleSidebar"
                             ToggleDockClicked="ToggleDock"/>
 
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Background="#2A2A2A" Orientation="Horizontal" Margin="6,4">
+            <Button Content="Undo" Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo}" Height="26" Margin="0,0,2,0"/>
+            <Button Content="Redo" Command="{Binding RedoCommand}" IsEnabled="{Binding CanRedo}" Height="26" Margin="0,0,6,0"/>
+            <Button Content="T" Command="{Binding SetGizmoTranslateCommand}" Height="26" Width="30" Margin="0,0,2,0"/>
+            <Button Content="R" Command="{Binding SetGizmoRotateCommand}" Height="26" Width="30" Margin="0,0,2,0"/>
+            <Button Content="S" Command="{Binding SetGizmoScaleCommand}" Height="26" Width="30" Margin="0,0,6,0"/>
+            <Button Content="Frame" Command="{Binding FrameSelectedCommand}" Height="26" Margin="0,0,2,0"/>
+            <Button Content="Reset Cam" Command="{Binding ResetCameraCommand}" Height="26" Margin="0,0,6,0"/>
+            <Button Content="+ Cube" Command="{Binding AddCubeCommand}" Height="26" Margin="0,0,2,0"/>
+            <Button Content="+ Sphere" Command="{Binding AddSphereCommand}" Height="26" Margin="0,0,2,0"/>
+            <Button Content="+ Dir Light" Command="{Binding AddDirectionalLightCommand}" Height="26" Margin="0,0,2,0"/>
+            <Button Content="+ Point Light" Command="{Binding AddPointLightCommand}" Height="26"/>
+        </StackPanel>
+
         <!-- Scene Tree -->
-        <Border x:Name="SidebarBorder" Background="#252525" Grid.Row="1" Grid.Column="0" CornerRadius="4" Margin="4">
-            <Grid RowDefinitions="Auto,*">
-                <TextBlock Grid.Row="0" Text="Scene Objects" Foreground="White" FontWeight="Bold" Margin="8,6"/>
-                <ListBox Grid.Row="1" x:Name="SceneObjectList"
+        <Border x:Name="SidebarBorder" Background="#252525" Grid.Row="2" Grid.Column="0" CornerRadius="4" Margin="4">
+            <Grid RowDefinitions="Auto,Auto,*,Auto">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="8,6">
+                    <TextBlock Grid.Column="0" Text="Scene Objects" Foreground="White" FontWeight="Bold"/>
+                    <Button Grid.Column="1" Content="+" Width="22" Height="22" Padding="0" Command="{Binding ExpandAllCommand}"/>
+                    <Button Grid.Column="2" Content="-" Width="22" Height="22" Padding="0" Command="{Binding CollapseAllCommand}" Margin="4,0,0,0"/>
+                </Grid>
+
+                <TextBox Grid.Row="1" Text="{Binding SearchFilter}" Watermark="Search..." Margin="8,0,8,4"
+                         Background="#333" Foreground="White" BorderThickness="0" Padding="6,4"/>
+
+                <ListBox Grid.Row="2" x:Name="SceneObjectList"
                          ItemsSource="{Binding SceneObjects}"
-                         SelectedItem="{Binding SelectedObject, Mode=TwoWay}"
-                         Background="Transparent" BorderThickness="0">
+                         Background="Transparent" BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.Styles>
                         <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
                             <Setter Property="Background" Value="#3D6B4B"/>
@@ -46,7 +71,10 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:SceneObjectViewModel">
                             <Grid ColumnDefinitions="Auto,*,Auto" Margin="4,2">
-                                <TextBlock Grid.Column="0" Text="&#x25A0;" Foreground="#4CAF50" Margin="0,0,6,0"/>
+                                <TextBlock Grid.Column="0" Text="&#x2600;" Foreground="#FFD700" Margin="0,0,6,0"
+                                           IsVisible="{Binding IsLight}"/>
+                                <TextBlock Grid.Column="0" Text="&#x25A0;" Foreground="#4CAF50" Margin="0,0,6,0"
+                                           IsVisible="{Binding IsLight, Converter={x:Static helpers:BoolConverters.Not}}"/>
                                 <TextBox Grid.Column="1" Text="{Binding Name}"
                                          Background="Transparent" BorderThickness="0"
                                          Foreground="White" MinWidth="60"
@@ -56,16 +84,21 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
+
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="8" Spacing="4">
+                    <Button Content="Duplicate" Command="{Binding DuplicateSelectedCommand}" Height="26" Width="80"/>
+                    <Button Content="Delete" Command="{Binding DeleteSelectedCommand}" Height="26" Width="80"/>
+                </StackPanel>
             </Grid>
         </Border>
 
         <!-- 3D Viewport -->
-        <Border x:Name="ContentBorder" Background="#1A1A1A" Grid.Row="1" Grid.Column="1" CornerRadius="4" Margin="4">
+        <Border x:Name="ContentBorder" Background="#1A1A1A" Grid.Row="2" Grid.Column="1" CornerRadius="4" Margin="4">
             <views:MainView />
         </Border>
 
         <!-- Properties Panel -->
-        <Border x:Name="AIChatBorder" Background="#252525" Grid.Row="1" Grid.Column="2" CornerRadius="4" Margin="4">
+        <Border x:Name="AIChatBorder" Background="#252525" Grid.Row="2" Grid.Column="2" CornerRadius="4" Margin="4">
             <Grid RowDefinitions="Auto,Auto,*,Auto">
                 <TextBlock Grid.Row="0" Text="Properties" Foreground="White" FontWeight="Bold" Margin="8,6"/>
 
@@ -80,11 +113,11 @@
 
                 <ScrollViewer Grid.Row="2" Margin="8">
                     <Grid>
-                        <!-- shown when object is selected -->
                         <StackPanel Spacing="10" IsVisible="{Binding HasSelectedObject}">
+                            <!-- Transform -->
                             <StackPanel DataContext="{Binding SelectedObject}" Spacing="6">
                                 <TextBlock Text="Transform" Foreground="#AAA" FontSize="12"/>
-                                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto">
+                                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto">
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="X" Foreground="#888" VerticalAlignment="Center" Margin="0,0,4,2"/>
                                     <Slider Grid.Row="0" Grid.Column="1" Minimum="-10" Maximum="10" Value="{Binding PositionX}" Margin="0,0,8,2"/>
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Y" Foreground="#888" VerticalAlignment="Center" Margin="0,0,4,2"/>
@@ -95,10 +128,14 @@
                                     <Slider Grid.Row="1" Grid.Column="3" Minimum="0.1" Maximum="5" Value="{Binding ScaleX}" Margin="0,0,0,2"/>
                                 </Grid>
 
+                                <!-- Grid toggle -->
+                                <CheckBox IsChecked="{Binding ShowGrid}" Content="Show Grid" Foreground="#AAA" Margin="0,4,0,0"/>
+
                                 <Separator Background="#3A3A3A" Height="1" Margin="0,2"/>
 
+                                <!-- Material -->
                                 <TextBlock Text="Material" Foreground="#AAA" FontSize="12"/>
-                                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Metallic" Foreground="#888" VerticalAlignment="Center" Margin="0,0,6,2"/>
                                     <Slider Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Minimum="0" Maximum="1" Value="{Binding Metallic}" Margin="0,0,0,2"/>
                                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Roughness" Foreground="#888" VerticalAlignment="Center" Margin="0,0,6,2"/>
@@ -115,9 +152,22 @@
                                     <Slider Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Minimum="0" Maximum="1" Value="{Binding AlbedoB}" Margin="0,0,0,2"/>
                                 </Grid>
                             </StackPanel>
+
+                            <!-- Light controls when a light is selected -->
+                            <StackPanel Spacing="6" IsVisible="{Binding HasSelectedObject}">
+                                <Separator Background="#3A3A3A" Height="1" Margin="0,2"/>
+                                <TextBlock Text="Light" Foreground="#AAA" FontSize="12"/>
+                                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Intensity" Foreground="#888" VerticalAlignment="Center" Margin="0,0,6,2"/>
+                                    <Slider Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Minimum="0" Maximum="10" Value="{Binding $parent[Window].DataContext.LightIntensity}" Margin="0,0,0,2"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="R" Foreground="#E57373" VerticalAlignment="Center" Margin="0,0,4,2"/>
+                                    <Slider Grid.Row="1" Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding $parent[Window].DataContext.LightR}" Margin="0,0,8,2"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="G" Foreground="#81C784" VerticalAlignment="Center" Margin="0,0,4,2"/>
+                                    <Slider Grid.Row="1" Grid.Column="3" Minimum="0" Maximum="1" Value="{Binding $parent[Window].DataContext.LightG}" Margin="0,0,0,2"/>
+                                </Grid>
+                            </StackPanel>
                         </StackPanel>
 
-                        <!-- shown when no object is selected -->
                         <StackPanel IsVisible="{Binding HasNoSelectedObject}"
                                     VerticalAlignment="Center" HorizontalAlignment="Center">
                             <TextBlock Text="No object selected" Foreground="#555" FontSize="12"/>
@@ -131,7 +181,7 @@
         </Border>
 
         <!-- Status Bar -->
-        <Border Grid.Row="2" Grid.ColumnSpan="3" Background="#1A1A1A" Padding="8,4">
+        <Border Grid.Row="3" Grid.ColumnSpan="3" Background="#1A1A1A" Padding="8,4">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <TextBlock Grid.Column="0" Text="{Binding Title}" Foreground="#666" FontSize="11"/>
                 <TextBlock Grid.Column="2" Foreground="#666" FontSize="11">
