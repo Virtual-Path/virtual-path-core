@@ -162,6 +162,7 @@ public class Renderer : OpenGlControlBase, IGraphicsHost<GL>
         if (context != null)
         {
             OnResize?.Invoke((int)e.NewSize.Width, (int)e.NewSize.Height);
+            RequestRender();
         }
     }
 
