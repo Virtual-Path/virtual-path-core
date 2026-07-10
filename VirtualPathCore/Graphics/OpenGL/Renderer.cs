@@ -6,7 +6,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
-using Avalonia.Threading;
 using VirtualPathCore.Helpers;
 using Silk.NET.Maths;
 using Silk.NET.OpenGLES;
@@ -25,8 +24,6 @@ public class Renderer : OpenGlControlBase, IGraphicsHost<GL>
     private RenderPipeline? canvasPipeline;
     private Mesh[]? canvasMeshes;
 
-    private bool _renderQueued;
-
     public event Action? OnLoad;
     public event Action? OnUnload;
     public event DeltaAction? OnUpdate;
@@ -44,11 +41,7 @@ public class Renderer : OpenGlControlBase, IGraphicsHost<GL>
 
     public void RequestRender()
     {
-        if (!_renderQueued)
-        {
-            _renderQueued = true;
-            Dispatcher.UIThread.Post(RequestNextFrameRendering, DispatcherPriority.Background);
-        }
+        RequestNextFrameRendering();
     }
 
     protected override void OnOpenGlInit(GlInterface gl)
@@ -110,8 +103,6 @@ public class Renderer : OpenGlControlBase, IGraphicsHost<GL>
     {
         if (context == null || frame == null || canvasPipeline == null || canvasMeshes == null)
             return;
-
-        _renderQueued = false;
 
         int w = PixelWidth, h = PixelHeight;
 
