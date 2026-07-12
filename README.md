@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/PRs-welcome-orange?style=flat-square" alt="PRs Welcome"/>
 </p>
 
-<h1 align="center">🖥️ VirtualPath Core</h1>
+<h1 align="center">VirtualPath Core</h1>
 
 <p align="center">
   <b>A cross-platform 3D scene engine with PBR rendering, real-time editing, and multi-viewport support — built with Avalonia UI + OpenGL.</b>
@@ -24,56 +24,56 @@
 
 ---
 
-## ✨ Features
+## Features
 
 <table>
   <tr>
     <td width="50%">
-      <h3>🎨 PBR Rendering</h3>
+      <h3> PBR Rendering</h3>
       <p>Physically Based Rendering with Cook-Torrance BRDF, metallic-roughness workflow, IBL-ready lighting, and normal/albedo texture mapping.</p>
     </td>
     <td width="50%">
-      <h3>📐 Multi-Viewport</h3>
+      <h3> Multi-Viewport</h3>
       <p>Up to 4 simultaneous views: Perspective + Top / Front / Right orthographic projections with dynamic reflow layout and per-viewport labels.</p>
     </td>
   </tr>
   <tr>
     <td>
-      <h3>🧊 Primitive Library</h3>
+      <h3> Primitive Library</h3>
       <p>Built-in primitives: Cube, Sphere, Cylinder, Cone, Torus — each with generated geometry, custom colors, and PBR materials.</p>
     </td>
     <td>
-      <h3>🔄 Transform Editing</h3>
+      <h3> Transform Editing</h3>
       <p>Real-time position, rotation, and scale sliders with numeric readouts. Gizmo overlay for visual translation.</p>
     </td>
   </tr>
   <tr>
     <td>
-      <h3>🌐 GLTF Import</h3>
+      <h3> GLTF Import</h3>
       <p>Import GLTF/GLB models with full mesh data: positions, normals, texture coordinates, and node hierarchy.</p>
     </td>
     <td>
-      <h3>⚡ MSAA Anti-Aliasing</h3>
+      <h3> MSAA Anti-Aliasing</h3>
       <p>Configurable multi-sample anti-aliasing (up to 16x) for crisp, high-quality rendering.</p>
     </td>
   </tr>
   <tr>
     <td>
-      <h3>🎯 Interactive Gizmo</h3>
+      <h3> Interactive Gizmo</h3>
       <p>RGB axis gizmo at selected object position with distance-adaptive scaling for precise manipulation.</p>
     </td>
     <td>
-      <h3>🌍 Grid & Axis Indicator</h3>
+      <h3> Grid & Axis Indicator</h3>
       <p>Configurable scene grid with subdivisions and a 3-axis orientation widget in the viewport corner.</p>
     </td>
   </tr>
   <tr>
     <td>
-      <h3>↩️ Undo / Redo</h3>
+      <h3> Undo / Redo</h3>
       <p>Full undo/redo support for scene modifications (add, delete, transform, material changes) with 100-level stack.</p>
     </td>
     <td>
-      <h3>🌙 Dark Theme</h3>
+      <h3> Dark Theme</h3>
       <p>Modern Apple-inspired dark UI with card-based layout, consistent typography, and smooth interactions.</p>
     </td>
   </tr>
@@ -81,33 +81,23 @@
 
 ---
 
-## 🖼️ Screenshots
+## Screenshots
 
 > *(Replace these with actual screenshots of your app)*
 
-| Perspective Viewport | Multi-Viewport Layout |
-|:---:|:---:|
-| ![Perspective](https://github.com/user-attachments/assets/5cc7c503-105e-431e-b3c9-3776e36c87ab) | ![Multi-Viewport](https://github.com/user-attachments/assets/d25ec287-d6cc-46b4-8cd1-0a2227b791e9) |
+| Multi-Viewport Layout |
+|:---:|
+| ![Multi-Viewport Layout](https://github.com/user-attachments/assets/06009b4a-3bdd-4e04-83ee-bd6b5c3d7571) |
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                   VirtualPath Core                       │
-├────────────┬────────────┬──────────────┬────────────────┤
-│   Views     │  ViewModels │   Services    │   Graphics     │
-│ (Avalonia)  │   (MVVM)   │              │   (OpenGL)      │
-├────────────┼────────────┼──────────────┼────────────────┤
-│ MainWindow │ MainVM     │ SceneService │ Renderer        │
-│ Properties │ SceneObjVM │ DrawService  │ RenderPipeline  │
-│ Viewport   │ AppVM      │ Settings     │ Mesh / Shader   │
-│ TreeView   │            │ Language     │ Transform       │
-│ Menu       │            │ UndoRedo     │ Camera / Light  │
-│            │            │ ModelImport  │ SceneObject     │
-└────────────┴────────────┴──────────────┴────────────────┘
-```
+---
+
+<img width="1717" height="916" alt="Image" src="https://github.com/user-attachments/assets/1ff8cfd0-d315-4b90-892b-0e471c6d7b73" />
+
+---
 
 ### Design Principles
 
@@ -132,7 +122,7 @@
 
 ---
 
-## 📦 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -161,7 +151,7 @@ dotnet publish VirtualPathCore.Desktop -c Release -r win-x64 --self-contained
 
 ---
 
-## 🎮 Controls
+##  Controls
 
 | Input | Action |
 |-------|--------|
@@ -173,7 +163,7 @@ dotnet publish VirtualPathCore.Desktop -c Release -r win-x64 --self-contained
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 VirtualPath-Core/
@@ -196,7 +186,7 @@ VirtualPath-Core/
 
 ---
 
-## 🧪 Roadmap
+##  Roadmap
 
 - [x] PBR rendering pipeline
 - [x] Primitive generation (Cube, Sphere, Cylinder, Cone, Torus)
@@ -215,7 +205,7 @@ VirtualPath-Core/
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
