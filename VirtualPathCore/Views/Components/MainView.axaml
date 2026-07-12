@@ -6,37 +6,71 @@
              xmlns:opengl="using:VirtualPathCore.Graphics.OpenGL"
              mc:Ignorable="d"
              x:Class="VirtualPathCore.Views.MainView"
-             x:DataType="vm:MainViewModel"
-             xmlns:views="using:VirtualPathCore.Views">
+             x:DataType="vm:MainViewModel">
 
-    <Border Margin="6" Background="#222" CornerRadius="8" Padding="0">
+    <Grid>
+        <opengl:Renderer x:Name="glRenderer1" />
+
+        <!-- Perspective label (TL) -->
+        <Border Background="#00000060" CornerRadius="6" Padding="8,3"
+                VerticalAlignment="Top" HorizontalAlignment="Left" Margin="8,6">
+            <TextBlock Text="Perspective" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" FontWeight="Medium"/>
+        </Border>
+
+        <!-- Quad viewport overlay grid -->
         <Grid>
-            <opengl:Renderer x:Name="glRenderer1" />
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- Viewport labels -->
-            <TextBlock Text="Perspective" Foreground="#AAA" FontSize="11"
-                       VerticalAlignment="Top" HorizontalAlignment="Left" Margin="8,6"
-                       FontWeight="Bold"/>
-            <TextBlock Text="Top" Foreground="#AAA" FontSize="11"
-                       VerticalAlignment="Top" HorizontalAlignment="Right" Margin="8,6"
-                       FontWeight="Bold"/>
-            <TextBlock Text="Front" Foreground="#AAA" FontSize="11"
-                       VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="8,6"
-                       FontWeight="Bold"/>
-            <TextBlock Text="Right" Foreground="#AAA" FontSize="11"
-                       VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="8,6"
-                       FontWeight="Bold"/>
+            <!-- Top label + close (TR) -->
+            <Border Grid.Row="0" Grid.Column="1" IsVisible="{Binding ShowTopView}"
+                    Background="#00000060" CornerRadius="6" Padding="8,3"
+                    VerticalAlignment="Top" HorizontalAlignment="Right" Margin="8,6">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Top" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" FontWeight="Medium"/>
+                    <Button Content="×" FontSize="11" Padding="2,0" MinWidth="16" MinHeight="16"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="{StaticResource TextTertiaryBrush}"
+                            Command="{Binding ToggleTopViewCommand}"/>
+                </StackPanel>
+            </Border>
 
-            <!-- Viewport dividers -->
-            <Rectangle VerticalAlignment="Center" Height="2" HorizontalAlignment="Stretch"
-                       Fill="#444" IsHitTestVisible="False" Margin="0"/>
-            <Rectangle HorizontalAlignment="Center" Width="2" VerticalAlignment="Stretch"
-                       Fill="#444" IsHitTestVisible="False" Margin="0"/>
+            <!-- Front label + close (BL) -->
+            <Border Grid.Row="1" Grid.Column="0" IsVisible="{Binding ShowFrontView}"
+                    Background="#00000060" CornerRadius="6" Padding="8,3"
+                    VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="8,6">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Front" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" FontWeight="Medium"/>
+                    <Button Content="×" FontSize="11" Padding="2,0" MinWidth="16" MinHeight="16"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="{StaticResource TextTertiaryBrush}"
+                            Command="{Binding ToggleFrontViewCommand}"/>
+                </StackPanel>
+            </Border>
 
-            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="8,4" Spacing="2" Opacity="0.6">
-                <TextBlock Foreground="White" FontWeight="Bold" FontSize="12" Text="3D Viewport" HorizontalAlignment="Center"/>
-                <TextBlock Foreground="#AAA" FontSize="10" Text="Left-drag: Orbit | Scroll: Zoom | F: Frame" HorizontalAlignment="Center"/>
-            </StackPanel>
+            <!-- Right label + close (BR) -->
+            <Border Grid.Row="1" Grid.Column="1" IsVisible="{Binding ShowRightView}"
+                    Background="#00000060" CornerRadius="6" Padding="8,3"
+                    VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="8,6">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Right" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" FontWeight="Medium"/>
+                    <Button Content="×" FontSize="11" Padding="2,0" MinWidth="16" MinHeight="16"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="{StaticResource TextTertiaryBrush}"
+                            Command="{Binding ToggleRightViewCommand}"/>
+                </StackPanel>
+            </Border>
         </Grid>
-    </Border>
+
+        <!-- Info -->
+        <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,8" Spacing="2" Opacity="0.3">
+            <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" Text="Orbit: Left-drag · Zoom: Scroll · Frame: F" HorizontalAlignment="Center"/>
+        </StackPanel>
+    </Grid>
 </UserControl>

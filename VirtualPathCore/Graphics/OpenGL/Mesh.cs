@@ -107,10 +107,10 @@ public unsafe class Mesh : GraphicsResource
     /// <summary>
     /// 绘制网格
     /// </summary>
-    public void Draw()
+    public void Draw(GLEnum mode = GLEnum.Triangles)
     {
         GL.BindVertexArray(Handle);
-        GL.DrawElements(GLEnum.Triangles, (uint)IndexLength, GLEnum.UnsignedInt, null);
+        GL.DrawElements(mode, (uint)IndexLength, GLEnum.UnsignedInt, null);
         GL.BindVertexArray(0);
     }
 }

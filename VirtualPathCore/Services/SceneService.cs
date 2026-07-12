@@ -50,11 +50,13 @@ public class SceneService
     private void Subscribe(SceneObjectViewModel vm)
     {
         vm.PropertyChanged += OnViewModelChanged;
+        vm.TransformChanged += RequestRender;
     }
 
     private void Unsubscribe(SceneObjectViewModel vm)
     {
         vm.PropertyChanged -= OnViewModelChanged;
+        vm.TransformChanged -= RequestRender;
     }
 
     public SceneObjectViewModel AddCube(string name = "Cube")
@@ -70,6 +72,36 @@ public class SceneService
     public SceneObjectViewModel AddSphere(string name = "Sphere")
     {
         var vm = SceneObjectViewModel.CreateSphere(name);
+        _scene.AddObject(vm.SceneObject);
+        SceneObjects.Add(vm);
+        Subscribe(vm);
+        RequestRender();
+        return vm;
+    }
+
+    public SceneObjectViewModel AddCylinder(string name = "Cylinder")
+    {
+        var vm = SceneObjectViewModel.CreateCylinder(name);
+        _scene.AddObject(vm.SceneObject);
+        SceneObjects.Add(vm);
+        Subscribe(vm);
+        RequestRender();
+        return vm;
+    }
+
+    public SceneObjectViewModel AddCone(string name = "Cone")
+    {
+        var vm = SceneObjectViewModel.CreateCone(name);
+        _scene.AddObject(vm.SceneObject);
+        SceneObjects.Add(vm);
+        Subscribe(vm);
+        RequestRender();
+        return vm;
+    }
+
+    public SceneObjectViewModel AddTorus(string name = "Torus")
+    {
+        var vm = SceneObjectViewModel.CreateTorus(name);
         _scene.AddObject(vm.SceneObject);
         SceneObjects.Add(vm);
         Subscribe(vm);

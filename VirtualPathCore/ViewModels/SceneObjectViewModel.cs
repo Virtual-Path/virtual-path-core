@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Silk.NET.Maths;
@@ -12,6 +13,22 @@ public partial class SceneObjectViewModel : ObservableObject
     private readonly SceneObject _sceneObject;
 
     public SceneObject SceneObject => _sceneObject;
+
+    public Action? TransformChanged { get; set; }
+
+    private void NotifyTransformChanged()
+    {
+        TransformChanged?.Invoke();
+        OnPropertyChanged(nameof(PositionX));
+        OnPropertyChanged(nameof(PositionY));
+        OnPropertyChanged(nameof(PositionZ));
+        OnPropertyChanged(nameof(ScaleX));
+        OnPropertyChanged(nameof(ScaleY));
+        OnPropertyChanged(nameof(ScaleZ));
+        OnPropertyChanged(nameof(RotationX));
+        OnPropertyChanged(nameof(RotationY));
+        OnPropertyChanged(nameof(RotationZ));
+    }
 
     [ObservableProperty]
     private bool _isExpanded = true;
@@ -52,6 +69,7 @@ public partial class SceneObjectViewModel : ObservableObject
             var p = _sceneObject.Transform.Position;
             _sceneObject.Transform.Position = new Vector3D<float>(value, p.Y, p.Z);
             OnPropertyChanged();
+            NotifyTransformChanged();
         }
     }
 
@@ -63,6 +81,7 @@ public partial class SceneObjectViewModel : ObservableObject
             var p = _sceneObject.Transform.Position;
             _sceneObject.Transform.Position = new Vector3D<float>(p.X, value, p.Z);
             OnPropertyChanged();
+            NotifyTransformChanged();
         }
     }
 
@@ -74,6 +93,7 @@ public partial class SceneObjectViewModel : ObservableObject
             var p = _sceneObject.Transform.Position;
             _sceneObject.Transform.Position = new Vector3D<float>(p.X, p.Y, value);
             OnPropertyChanged();
+            NotifyTransformChanged();
         }
     }
 
@@ -85,6 +105,7 @@ public partial class SceneObjectViewModel : ObservableObject
             var s = _sceneObject.Transform.Scale;
             _sceneObject.Transform.Scale = new Vector3D<float>(value, s.Y, s.Z);
             OnPropertyChanged();
+            NotifyTransformChanged();
         }
     }
 
@@ -96,6 +117,7 @@ public partial class SceneObjectViewModel : ObservableObject
             var s = _sceneObject.Transform.Scale;
             _sceneObject.Transform.Scale = new Vector3D<float>(s.X, value, s.Z);
             OnPropertyChanged();
+            NotifyTransformChanged();
         }
     }
 
@@ -107,6 +129,7 @@ public partial class SceneObjectViewModel : ObservableObject
             var s = _sceneObject.Transform.Scale;
             _sceneObject.Transform.Scale = new Vector3D<float>(s.X, s.Y, value);
             OnPropertyChanged();
+            NotifyTransformChanged();
         }
     }
 
@@ -118,6 +141,7 @@ public partial class SceneObjectViewModel : ObservableObject
             var r = _sceneObject.Transform.Rotation;
             _sceneObject.Transform.Rotation = new Quaternion<float>(value, r.Y, r.Z, r.W);
             OnPropertyChanged();
+            NotifyTransformChanged();
         }
     }
 
@@ -129,6 +153,7 @@ public partial class SceneObjectViewModel : ObservableObject
             var r = _sceneObject.Transform.Rotation;
             _sceneObject.Transform.Rotation = new Quaternion<float>(r.X, value, r.Z, r.W);
             OnPropertyChanged();
+            NotifyTransformChanged();
         }
     }
 
@@ -140,6 +165,7 @@ public partial class SceneObjectViewModel : ObservableObject
             var r = _sceneObject.Transform.Rotation;
             _sceneObject.Transform.Rotation = new Quaternion<float>(r.X, r.Y, value, r.W);
             OnPropertyChanged();
+            NotifyTransformChanged();
         }
     }
 
@@ -309,6 +335,57 @@ public partial class SceneObjectViewModel : ObservableObject
                 Albedo = new Vector4D<float>(0.2f, 0.6f, 1.0f, 1.0f),
                 Metallic = 0.3f,
                 Roughness = 0.4f
+            }
+        };
+        return new SceneObjectViewModel(obj);
+    }
+
+    public static SceneObjectViewModel CreateCylinder(string name = "Cylinder")
+    {
+        MeshFactory.GetCylinder(out Vertex[] vertices, out uint[] indices);
+        var obj = new SceneObject
+        {
+            Name = name,
+            MeshBlueprint = new MeshData(vertices, indices),
+            Material = new Material
+            {
+                Albedo = new Vector4D<float>(0.3f, 0.8f, 0.3f, 1.0f),
+                Metallic = 0.2f,
+                Roughness = 0.6f
+            }
+        };
+        return new SceneObjectViewModel(obj);
+    }
+
+    public static SceneObjectViewModel CreateCone(string name = "Cone")
+    {
+        MeshFactory.GetCone(out Vertex[] vertices, out uint[] indices);
+        var obj = new SceneObject
+        {
+            Name = name,
+            MeshBlueprint = new MeshData(vertices, indices),
+            Material = new Material
+            {
+                Albedo = new Vector4D<float>(0.9f, 0.7f, 0.1f, 1.0f),
+                Metallic = 0.4f,
+                Roughness = 0.3f
+            }
+        };
+        return new SceneObjectViewModel(obj);
+    }
+
+    public static SceneObjectViewModel CreateTorus(string name = "Torus")
+    {
+        MeshFactory.GetTorus(out Vertex[] vertices, out uint[] indices);
+        var obj = new SceneObject
+        {
+            Name = name,
+            MeshBlueprint = new MeshData(vertices, indices),
+            Material = new Material
+            {
+                Albedo = new Vector4D<float>(0.8f, 0.2f, 0.6f, 1.0f),
+                Metallic = 0.6f,
+                Roughness = 0.2f
             }
         };
         return new SceneObjectViewModel(obj);

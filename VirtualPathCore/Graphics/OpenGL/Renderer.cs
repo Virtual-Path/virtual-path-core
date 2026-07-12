@@ -41,6 +41,9 @@ public unsafe class Renderer : OpenGlControlBase, IGraphicsHost<GL>
         if (_sceneFbo != 0 && w == _sceneW && h == _sceneH)
             return;
 
+        if (w <= 0 || h <= 0)
+            return;
+
         var gl = context!;
         DestroySceneFbo();
 
@@ -64,7 +67,13 @@ public unsafe class Renderer : OpenGlControlBase, IGraphicsHost<GL>
         gl.BindFramebuffer(GLEnum.Framebuffer, _sceneFbo);
         gl.FramebufferTexture2D(GLEnum.Framebuffer, GLEnum.ColorAttachment0, GLEnum.Texture2D, _sceneColorTex, 0);
         gl.FramebufferRenderbuffer(GLEnum.Framebuffer, GLEnum.DepthAttachment, GLEnum.Renderbuffer, _sceneDepthRbo);
-        Debug.Assert(gl.CheckFramebufferStatus(GLEnum.Framebuffer) == GLEnum.FramebufferComplete, "Scene FBO incomplete");
+
+        var status = gl.CheckFramebufferStatus(GLEnum.Framebuffer);
+        if (status != GLEnum.FramebufferComplete)
+        {
+            DestroySceneFbo();
+        }
+
         gl.BindFramebuffer(GLEnum.Framebuffer, 0);
     }
 
@@ -78,6 +87,8 @@ public unsafe class Renderer : OpenGlControlBase, IGraphicsHost<GL>
 
     private void RenderScene()
     {
+        if (_sceneFbo == 0)
+            return;
         var gl = context!;
         gl.BindFramebuffer(GLEnum.Framebuffer, _sceneFbo);
         gl.Viewport(0, 0, (uint)_sceneW, (uint)_sceneH);
@@ -86,6 +97,8 @@ public unsafe class Renderer : OpenGlControlBase, IGraphicsHost<GL>
 
     private void BlitToFb(uint targetFb)
     {
+        if (_sceneFbo == 0)
+            return;
         var gl = context!;
         gl.BindFramebuffer(GLEnum.ReadFramebuffer, _sceneFbo);
         gl.BindFramebuffer(GLEnum.DrawFramebuffer, targetFb);

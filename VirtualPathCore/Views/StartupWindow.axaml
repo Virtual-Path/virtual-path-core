@@ -2,61 +2,55 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="VirtualPathCore.StartupWindow"
         Title="Virtual Path"
-        Width="800"
-        Height="600"
-        Background="Transparent"
-        CanResize="True"
+        Width="440" Height="400"
+        Background="{StaticResource WindowBgBrush}"
+        CanResize="False"
         WindowStartupLocation="CenterScreen"
-        SizeChanged="OnSizeChanged"
         SystemDecorations="None">
 
-	<Window.Resources>
-		<!-- 灰色渐变背景 -->
-		<LinearGradientBrush x:Key="BackgroundGradient" StartPoint="0,0" EndPoint="0,1">
-			<GradientStop Offset="0" Color="#4E4E4E" />
-			<GradientStop Offset="1" Color="#2E2E2E" />
-		</LinearGradientBrush>
+    <Grid>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20" Margin="40,0">
+            <!-- Logo -->
+            <Border CornerRadius="14" Background="{StaticResource CardBgBrush}" Padding="16"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                    BoxShadow="0 6 24 0 #00000040">
+                <Image x:Name="LogoImage"
+                       Source="avares://VirtualPathCore/Assets/Logo.png"
+                       Width="200" Height="130"
+                       RenderTransformOrigin="0.5,0.5"/>
+            </Border>
 
-		<!-- 文字渐变颜色 -->
-		<LinearGradientBrush x:Key="TextGradient" StartPoint="0,0" EndPoint="1,0">
-			<GradientStop Offset="0" Color="#CCCCCC" />
-			<GradientStop Offset="1" Color="#EEEEEE" />
-		</LinearGradientBrush>
-	</Window.Resources>
+            <!-- Title -->
+            <TextBlock x:Name="WelcomeText"
+                       Text="Virtual Path 3D Engine"
+                       FontSize="20"
+                       HorizontalAlignment="Center"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" />
 
-	<Grid Background="{StaticResource BackgroundGradient}">
-		<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20" Margin="40,0">
-			<!-- Logo 图片，带阴影和缩放中心 -->
-			<Image x:Name="LogoImage"
-				   Source="avares://VirtualPathCore/Assets/Logo.png"
-				   Width="300"
-				   Height="200"
-				   RenderTransformOrigin="0.5,0.5">
-				<Image.RenderTransform>
-					<ScaleTransform />
-				</Image.RenderTransform>
-				<Image.Effect>
-					<DropShadowEffect Color="#66000000" BlurRadius="15" Opacity="0.7" />
-				</Image.Effect>
-			</Image>
+            <!-- Status -->
+            <TextBlock x:Name="StatusText"
+                       Text="Initializing..."
+                       FontSize="13"
+                       Foreground="{StaticResource TextTertiaryBrush}"
+                       HorizontalAlignment="Center" />
 
-			<!-- 欢迎文本 -->
-			<TextBlock x:Name="WelcomeText"
-					   Text="Virtual Path 3D Engine"
-					   FontSize="28"
-					   HorizontalAlignment="Center"
-					   VerticalAlignment="Center"
-					   FontWeight="SemiBold"
-					   Foreground="{StaticResource TextGradient}" />
-		</StackPanel>
+            <!-- Progress -->
+            <Border CornerRadius="5" Background="{StaticResource InputBgBrush}" Padding="1,0" Width="280"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <ProgressBar x:Name="ProgressBar"
+                             Minimum="0" Maximum="1"
+                             Value="0"
+                             Height="5"
+                             BorderThickness="0"/>
+            </Border>
+        </StackPanel>
 
-		<!-- 版本信息，右下角 -->
-		<TextBlock x:Name="VersionText"
-				   Text="Version 0.0.1"
-				   FontSize="14"
-				   Foreground="#999999"
-				   HorizontalAlignment="Right"
-				   VerticalAlignment="Bottom"
-				   Margin="0,0,15,15" />
-	</Grid>
+        <TextBlock Text="Version 0.1.0"
+                   FontSize="12"
+                   Foreground="{StaticResource TextDisabledBrush}"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Bottom"
+                   Margin="0,0,20,16" />
+    </Grid>
 </Window>

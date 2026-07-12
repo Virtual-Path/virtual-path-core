@@ -4,46 +4,41 @@
              x:Class="VirtualPathCore.Views.Components.AppMenu"
              x:DataType="vm:MainViewModel">
 
-    <Border Background="#2A2A2A" CornerRadius="5">
-        <Menu Foreground="White" Background="Transparent" BorderThickness="0">
-            <MenuItem Header="File" Background="#2A2A2A" Foreground="White">
-                <MenuItem Header="New Project" Command="{Binding NewProjectCommand}"/>
-                <MenuItem Header="Open Project" Command="{Binding OpenProjectCommand}"/>
-                <Separator/>
-                <MenuItem Header="Save Project" Command="{Binding SaveProjectCommand}"/>
-                <MenuItem Header="Save As..." Command="{Binding SaveProjectAsCommand}"/>
-                <Separator/>
-                <MenuItem Header="Import Model" Command="{Binding ImportModelCommand}"/>
-                <Separator/>
-                <MenuItem Header="Exit" Command="{Binding ExitCommand}"/>
-            </MenuItem>
-
-            <MenuItem Header="Edit" Background="#2A2A2A" Foreground="White">
-                <MenuItem Header="Undo" IsEnabled="False"/>
-                <MenuItem Header="Redo" IsEnabled="False"/>
-                <Separator/>
-                <MenuItem Header="Cut" IsEnabled="False"/>
-                <MenuItem Header="Copy" IsEnabled="False"/>
-                <MenuItem Header="Paste" IsEnabled="False"/>
-            </MenuItem>
-
-            <MenuItem Header="Scene" Background="#2A2A2A" Foreground="White">
-                <MenuItem Header="Add Cube" Command="{Binding AddCubeCommand}"/>
-                <MenuItem Header="Add Sphere" Command="{Binding AddSphereCommand}"/>
-                <MenuItem Header="Delete Selected" Command="{Binding DeleteSelectedCommand}"/>
-                <Separator/>
-                <MenuItem Header="Clear Scene" Command="{Binding ClearSceneCommand}"/>
-            </MenuItem>
-
-            <MenuItem Header="Window" Background="#2A2A2A" Foreground="White">
-                <MenuItem Header="Toggle Sidebar" Click="ToggleSidebar"/>
-                <MenuItem Header="Toggle Sidebar Dock" Click="ToggleDock"/>
-            </MenuItem>
-
-            <MenuItem Header="Help" Background="#2A2A2A" Foreground="White">
-                <MenuItem Header="Documentation" IsEnabled="False"/>
-                <MenuItem Header="About" IsEnabled="False"/>
-            </MenuItem>
-        </Menu>
-    </Border>
+    <Menu Foreground="{StaticResource TextPrimaryBrush}" Background="Transparent" BorderThickness="0"
+          FontSize="13" Height="28" VerticalAlignment="Center">
+        <MenuItem Header="File">
+            <MenuItem Header="New Project" Command="{Binding NewProjectCommand}"/>
+            <MenuItem Header="Open Project" Command="{Binding OpenProjectCommand}"/>
+            <Separator/>
+            <MenuItem Header="Save Project" Command="{Binding SaveProjectCommand}"/>
+            <MenuItem Header="Save As..." Command="{Binding SaveProjectAsCommand}"/>
+            <Separator/>
+            <MenuItem Header="Import Model" Command="{Binding ImportModelCommand}"/>
+            <Separator/>
+            <MenuItem Header="Exit" Command="{Binding ExitCommand}"/>
+        </MenuItem>
+        <MenuItem Header="Edit">
+            <MenuItem Header="Undo" IsEnabled="False"/>
+            <MenuItem Header="Redo" IsEnabled="False"/>
+            <Separator/>
+            <MenuItem Header="Cut" IsEnabled="False"/>
+            <MenuItem Header="Copy" IsEnabled="False"/>
+            <MenuItem Header="Paste" IsEnabled="False"/>
+        </MenuItem>
+        <MenuItem Header="Scene">
+            <MenuItem Header="Add Cube" Command="{Binding AddCubeCommand}"/>
+            <MenuItem Header="Add Sphere" Command="{Binding AddSphereCommand}"/>
+            <MenuItem Header="Delete Selected" Command="{Binding DeleteSelectedCommand}"/>
+            <Separator/>
+            <MenuItem Header="Clear Scene" Command="{Binding ClearSceneCommand}"/>
+        </MenuItem>
+        <MenuItem Header="Window">
+            <MenuItem Header="Toggle Sidebar" Click="ToggleSidebar"/>
+            <MenuItem Header="Toggle Sidebar Dock" Click="ToggleDock"/>
+        </MenuItem>
+        <MenuItem Header="Help">
+            <MenuItem Header="Documentation" IsEnabled="False"/>
+            <MenuItem Header="About" IsEnabled="False"/>
+        </MenuItem>
+    </Menu>
 </UserControl>

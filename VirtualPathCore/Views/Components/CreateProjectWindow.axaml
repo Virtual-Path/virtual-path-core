@@ -6,48 +6,47 @@
         Width="400" Height="300"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
-        Background="#2C2C2C"
-        Foreground="White"
+        Background="{StaticResource SidebarBgBrush}"
+        Foreground="{StaticResource TextPrimaryBrush}"
         ShowInTaskbar="False"
         Topmost="False"
         Icon="/Assets/Const.png"
-        Title="Create New Project"
-        >
-	<Window.DataContext>
-		<viewModels:CreateProjectViewModel />
-	</Window.DataContext>
-	<Grid Margin="20">
-		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="*"/>
-			<RowDefinition Height="Auto"/>
-		</Grid.RowDefinitions>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="Auto"/>
-			<ColumnDefinition Width="*"/>
-		</Grid.ColumnDefinitions>
+        Title="New Project">
+    <Window.DataContext>
+        <viewModels:CreateProjectViewModel />
+    </Window.DataContext>
+    <Border Margin="1" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8">
+        <Grid Margin="24,20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-		<TextBlock Text="Project Name:" Grid.Row="0" Grid.Column="0" Margin="0,0,10,10" Foreground="White" VerticalAlignment="Center"/>
-		<TextBox Text="{Binding ProjectName}" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10" Background="#444444" Foreground="White" BorderBrush="#666666" VerticalAlignment="Center"/>
+            <TextBlock Text="Name" Grid.Row="0" Grid.Column="0" Margin="0,0,12,12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" FontSize="13"/>
+            <TextBox Text="{Binding ProjectName}" Grid.Row="0" Grid.Column="1" Margin="0,0,0,12" VerticalAlignment="Center"/>
 
-		<TextBlock Text="Project Description:" Grid.Row="1" Grid.Column="0" Margin="0,0,10,10" Foreground="White" VerticalAlignment="Center"/>
-		<TextBox Text="{Binding ProjectDescription}" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10" TextWrapping="Wrap" Background="#444444" Foreground="White" BorderBrush="#666666" VerticalAlignment="Center"/>
+            <TextBlock Text="Description" Grid.Row="1" Grid.Column="0" Margin="0,0,12,12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Top" FontSize="13"/>
+            <TextBox Text="{Binding ProjectDescription}" Grid.Row="1" Grid.Column="1" Margin="0,0,0,12" TextWrapping="Wrap" Height="60" VerticalAlignment="Top"/>
 
-		<TextBlock Text="Project Path:" Grid.Row="2" Grid.Column="0" Margin="0,0,10,10" Foreground="White" VerticalAlignment="Center"/>
-		<Grid Grid.Row="2" Grid.Column="1" Margin="0,0,0,10">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="Auto"/>
-			</Grid.ColumnDefinitions>
+            <TextBlock Text="Path" Grid.Row="2" Grid.Column="0" Margin="0,0,12,12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" FontSize="13"/>
+            <Grid Grid.Row="2" Grid.Column="1" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding ProjectPath}" Grid.Column="0" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <Button Content="Browse" Grid.Column="1" Width="90" VerticalAlignment="Center" Command="{Binding SelectProjectPathCommand}"/>
+            </Grid>
 
-			<TextBox Text="{Binding ProjectPath}" Grid.Column="0" Margin="0,0,10,0" Background="#444444" Foreground="White" BorderBrush="#666666" VerticalAlignment="Center"/>
-			<Button Content="Select Path" Grid.Column="1" Width="100" Margin="0,0,0,0" Command="{Binding SelectProjectPathCommand}" Background="#555555" Foreground="White" BorderBrush="#666666" VerticalAlignment="Center"/>
-		</Grid>
-
-		<Button Content="Create" Grid.Row="6" Grid.ColumnSpan="2" HorizontalAlignment="Right" Width="100" Margin="0,10,0,0" Command="{Binding CreateProjectCommand}" Background="#555555" Foreground="White" BorderBrush="#666666" VerticalAlignment="Center"/>
-	</Grid>
+            <Button Content="Create" Grid.Row="5" Grid.ColumnSpan="2" HorizontalAlignment="Right" Width="100" Margin="0,8,0,0" Command="{Binding CreateProjectCommand}" FontWeight="SemiBold"/>
+        </Grid>
+    </Border>
 </Window>

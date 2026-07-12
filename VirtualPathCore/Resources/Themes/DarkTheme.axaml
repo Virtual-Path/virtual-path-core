@@ -1,0 +1,54 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ===== Apple macOS Dark Palette ===== -->
+    <Color x:Key="WindowBg">#1E1E1E</Color>
+    <Color x:Key="SidebarBg">#252525</Color>
+    <Color x:Key="PanelBg">#2A2A2A</Color>
+    <Color x:Key="CardBg">#323232</Color>
+    <Color x:Key="HoverBg">#3A3A3A</Color>
+    <Color x:Key="SelectedBg">#404040</Color>
+    <Color x:Key="PressedBg">#4A4A4A</Color>
+    <Color x:Key="InputBg">#333333</Color>
+    <Color x:Key="BorderColor">#3D3D3D</Color>
+    <Color x:Key="DividerColor">#333333</Color>
+    <Color x:Key="TextPrimary">#FFFFFF</Color>
+    <Color x:Key="TextSecondary">#9B9B9B</Color>
+    <Color x:Key="TextTertiary">#666666</Color>
+    <Color x:Key="TextDisabled">#4A4A4A</Color>
+    <Color x:Key="AccentBlue">#007AFF</Color>
+    <Color x:Key="AccentGreen">#34C759</Color>
+    <Color x:Key="AccentOrange">#FF9500</Color>
+    <Color x:Key="AccentRed">#FF3B30</Color>
+    <Color x:Key="AccentPurple">#5856D6</Color>
+    <Color x:Key="AccentYellow">#FFD60A</Color>
+    <Color x:Key="AccentCyan">#64D2FF</Color>
+    <Color x:Key="SelectionHighlight">#3A3A3C</Color>
+    <Color x:Key="OverlayBg">#80000000</Color>
+
+    <!-- ===== Brushes ===== -->
+    <SolidColorBrush x:Key="WindowBgBrush" Color="{StaticResource WindowBg}"/>
+    <SolidColorBrush x:Key="SidebarBgBrush" Color="{StaticResource SidebarBg}"/>
+    <SolidColorBrush x:Key="PanelBgBrush" Color="{StaticResource PanelBg}"/>
+    <SolidColorBrush x:Key="CardBgBrush" Color="{StaticResource CardBg}"/>
+    <SolidColorBrush x:Key="HoverBgBrush" Color="{StaticResource HoverBg}"/>
+    <SolidColorBrush x:Key="SelectedBgBrush" Color="{StaticResource SelectedBg}"/>
+    <SolidColorBrush x:Key="PressedBgBrush" Color="{StaticResource PressedBg}"/>
+    <SolidColorBrush x:Key="InputBgBrush" Color="{StaticResource InputBg}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="{StaticResource TextTertiary}"/>
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabled}"/>
+    <SolidColorBrush x:Key="AccentBlueBrush" Color="{StaticResource AccentBlue}"/>
+    <SolidColorBrush x:Key="AccentGreenBrush" Color="{StaticResource AccentGreen}"/>
+    <SolidColorBrush x:Key="AccentOrangeBrush" Color="{StaticResource AccentOrange}"/>
+    <SolidColorBrush x:Key="AccentRedBrush" Color="{StaticResource AccentRed}"/>
+    <SolidColorBrush x:Key="AccentPurpleBrush" Color="{StaticResource AccentPurple}"/>
+    <SolidColorBrush x:Key="AccentYellowBrush" Color="{StaticResource AccentYellow}"/>
+    <SolidColorBrush x:Key="AccentCyanBrush" Color="{StaticResource AccentCyan}"/>
+    <SolidColorBrush x:Key="OverlayBgBrush" Color="{StaticResource OverlayBg}"/>
+    <SolidColorBrush x:Key="SelectionHighlightBrush" Color="{StaticResource SelectionHighlight}"/>
+
+</ResourceDictionary>

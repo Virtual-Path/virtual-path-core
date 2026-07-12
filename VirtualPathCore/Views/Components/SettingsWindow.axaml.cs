@@ -8,10 +8,13 @@ namespace VirtualPathCore.Views.Components;
 
 public partial class SettingsWindow : Window
 {
+    private bool _isLoading = true;
+
     public SettingsWindow()
     {
         InitializeComponent();
         LoadCurrentSettings();
+        _isLoading = false;
     }
 
     private void LoadCurrentSettings()
@@ -20,26 +23,26 @@ public partial class SettingsWindow : Window
         if (settings == null) return;
 
         string lang = settings.GetLanguage();
-        if (lang == "zh-CN") LanguageComboBox.SelectedIndex = 0;
-        else LanguageComboBox.SelectedIndex = 1;
+        LanguageComboBox.SelectedIndex = lang == "zh-CN" ? 0 : 1;
 
         var theme = settings.GetTheme();
-        if (theme == ThemeVariant.Light) ThemeComboBox.SelectedIndex = 1;
-        else if (theme == ThemeVariant.Dark) ThemeComboBox.SelectedIndex = 2;
-        else ThemeComboBox.SelectedIndex = 0;
+        ThemeComboBox.SelectedIndex = theme == ThemeVariant.Light ? 1 : theme == ThemeVariant.Dark ? 2 : 0;
     }
 
     private void LanguageChanged(object? sender, SelectionChangedEventArgs e)
     {
+        if (_isLoading) return;
+
         if (LanguageComboBox.SelectedItem is ComboBoxItem item && item.Tag is string langCode)
         {
             App.SettingsService?.SetLanguage(langCode);
-            System.Diagnostics.Debug.WriteLine($"Language changed to: {langCode}");
         }
     }
 
     private void ThemeChanged(object? sender, SelectionChangedEventArgs e)
     {
+        if (_isLoading) return;
+
         ThemeVariant theme = ThemeComboBox.SelectedIndex switch
         {
             1 => ThemeVariant.Light,
@@ -53,8 +56,6 @@ public partial class SettingsWindow : Window
         {
             Application.Current.RequestedThemeVariant = theme;
         }
-
-        System.Diagnostics.Debug.WriteLine($"Theme changed to: {theme}");
     }
 
     private void CloseWindow(object? sender, RoutedEventArgs e)

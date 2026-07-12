@@ -48,6 +48,16 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private string _cameraInfo = "";
 
+    // Viewport toggles
+    [ObservableProperty]
+    private bool _showTopView;
+
+    [ObservableProperty]
+    private bool _showFrontView;
+
+    [ObservableProperty]
+    private bool _showRightView;
+
     // Gizmo mode
     [ObservableProperty]
     private GizmoMode _gizmoMode = GizmoMode.Translate;
@@ -106,6 +116,17 @@ public partial class MainViewModel : ViewModelBase
         _sceneService.Scene.ShowGrid = value;
     }
 
+    partial void OnShowTopViewChanged(bool value) => _sceneService.Scene.ShowTopView = value;
+    partial void OnShowFrontViewChanged(bool value) => _sceneService.Scene.ShowFrontView = value;
+    partial void OnShowRightViewChanged(bool value) => _sceneService.Scene.ShowRightView = value;
+
+    [RelayCommand]
+    private void ToggleTopView() => ShowTopView = !ShowTopView;
+    [RelayCommand]
+    private void ToggleFrontView() => ShowFrontView = !ShowFrontView;
+    [RelayCommand]
+    private void ToggleRightView() => ShowRightView = !ShowRightView;
+
     partial void OnSearchFilterChanged(string value)
     {
         ApplySearchFilter();
@@ -140,7 +161,14 @@ public partial class MainViewModel : ViewModelBase
     private void UpdateLightProperties()
     {
         var lightObj = SelectedObject?.SceneObject;
-        if (lightObj == null) return;
+        if (lightObj == null)
+        {
+            LightIntensity = 1;
+            LightR = 1;
+            LightG = 1;
+            LightB = 1;
+            return;
+        }
         var light = lightObj.GetCustomProperty<Light>("Light");
         if (light != null)
         {
@@ -148,6 +176,13 @@ public partial class MainViewModel : ViewModelBase
             LightR = light.Color.X;
             LightG = light.Color.Y;
             LightB = light.Color.Z;
+        }
+        else
+        {
+            LightIntensity = 1;
+            LightR = 1;
+            LightG = 1;
+            LightB = 1;
         }
     }
 
@@ -170,6 +205,30 @@ public partial class MainViewModel : ViewModelBase
     private void AddSphere()
     {
         var vm = _sceneService.AddSphere($"Sphere {_sceneService.SceneObjects.Count + 1}");
+        SetSelectedObject(vm);
+        IsModified = true;
+    }
+
+    [RelayCommand]
+    private void AddCylinder()
+    {
+        var vm = _sceneService.AddCylinder($"Cylinder {_sceneService.SceneObjects.Count + 1}");
+        SetSelectedObject(vm);
+        IsModified = true;
+    }
+
+    [RelayCommand]
+    private void AddCone()
+    {
+        var vm = _sceneService.AddCone($"Cone {_sceneService.SceneObjects.Count + 1}");
+        SetSelectedObject(vm);
+        IsModified = true;
+    }
+
+    [RelayCommand]
+    private void AddTorus()
+    {
+        var vm = _sceneService.AddTorus($"Torus {_sceneService.SceneObjects.Count + 1}");
         SetSelectedObject(vm);
         IsModified = true;
     }

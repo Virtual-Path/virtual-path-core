@@ -179,6 +179,43 @@ public class Scene : IDisposable, System.ComponentModel.INotifyPropertyChanged
         }
     }
     private bool _showGrid = true;
+
+    private bool _showTopView;
+    public bool ShowTopView
+    {
+        get => _showTopView;
+        set
+        {
+            if (_showTopView == value) return;
+            _showTopView = value;
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(ShowTopView)));
+        }
+    }
+
+    private bool _showFrontView;
+    public bool ShowFrontView
+    {
+        get => _showFrontView;
+        set
+        {
+            if (_showFrontView == value) return;
+            _showFrontView = value;
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(ShowFrontView)));
+        }
+    }
+
+    private bool _showRightView;
+    public bool ShowRightView
+    {
+        get => _showRightView;
+        set
+        {
+            if (_showRightView == value) return;
+            _showRightView = value;
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(ShowRightView)));
+        }
+    }
+
     public float GridSize { get; set; } = 10.0f;
     public int GridSubdivisions { get; set; } = 10;
     public Vector4D<float> GridColor { get; set; } = new(0.3f, 0.3f, 0.35f, 1.0f);

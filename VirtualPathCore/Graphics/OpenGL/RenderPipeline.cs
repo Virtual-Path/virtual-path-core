@@ -129,7 +129,7 @@ public unsafe class RenderPipeline : GraphicsResource
     /// <param name="value">要设置的值</param>
     public void SetUniform(string name, Matrix2X2<float> value)
     {
-        GL.UniformMatrix2(GetUniformLocation(name), 1, true, (float*)&value);
+        GL.UniformMatrix2(GetUniformLocation(name), 1, false, (float*)&value);
     }
 
     /// <summary>
@@ -139,7 +139,7 @@ public unsafe class RenderPipeline : GraphicsResource
     /// <param name="value">要设置的值</param>
     public void SetUniform(string name, Matrix3X3<float> value)
     {
-        GL.UniformMatrix3(GetUniformLocation(name), 1, true, (float*)&value);
+        GL.UniformMatrix3(GetUniformLocation(name), 1, false, (float*)&value);
     }
 
     /// <summary>
@@ -149,7 +149,7 @@ public unsafe class RenderPipeline : GraphicsResource
     /// <param name="value">要设置的值</param>
     public void SetUniform(string name, Matrix4X4<float> value)
     {
-        GL.UniformMatrix4(GetUniformLocation(name), 1, true, (float*)&value);
+        GL.UniformMatrix4(GetUniformLocation(name), 1, false, (float*)&value);
     }
 
     private static readonly Dictionary<Type, FieldInfo[]> _fieldCache = new();

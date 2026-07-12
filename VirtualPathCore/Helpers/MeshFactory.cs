@@ -131,6 +131,159 @@ namespace VirtualPathCore.Helpers
     }
 
     /// <summary>
+    /// 获取一个圆柱体的顶点和索引数据
+    /// </summary>
+    public static void GetCylinder(out Vertex[] vertices, out uint[] indices, float radius = 0.5f, float height = 1.0f, int segments = 24)
+    {
+        var vertList = new System.Collections.Generic.List<Vertex>();
+        var idxList = new System.Collections.Generic.List<uint>();
+        float halfH = height / 2;
+
+        // Side vertices
+        for (int i = 0; i <= segments; i++)
+        {
+            float angle = i * 2 * MathF.PI / segments;
+            float x = radius * MathF.Cos(angle);
+            float y = radius * MathF.Sin(angle);
+            Vector3D<float> n = new(MathF.Cos(angle), MathF.Sin(angle), 0);
+            vertList.Add(new Vertex(new(x, y, halfH), n, texCoord: new((float)i / segments, 1)));
+            vertList.Add(new Vertex(new(x, y, -halfH), n, texCoord: new((float)i / segments, 0)));
+        }
+        for (int i = 0; i < segments; i++)
+        {
+            int a = i * 2, b = i * 2 + 1, c = (i + 1) * 2, d = (i + 1) * 2 + 1;
+            idxList.Add((uint)a); idxList.Add((uint)c); idxList.Add((uint)b);
+            idxList.Add((uint)b); idxList.Add((uint)c); idxList.Add((uint)d);
+        }
+
+        // Top cap
+        int topCenter = vertList.Count;
+        vertList.Add(new Vertex(new(0, 0, halfH), new(0, 0, 1)));
+        for (int i = 0; i <= segments; i++)
+        {
+            float angle = i * 2 * MathF.PI / segments;
+            vertList.Add(new Vertex(new(radius * MathF.Cos(angle), radius * MathF.Sin(angle), halfH), new(0, 0, 1)));
+        }
+        for (int i = 0; i < segments; i++)
+        {
+            idxList.Add((uint)(topCenter + i + 1));
+            idxList.Add((uint)(topCenter));
+            idxList.Add((uint)(topCenter + i + 2));
+        }
+
+        // Bottom cap
+        int botCenter = vertList.Count;
+        vertList.Add(new Vertex(new(0, 0, -halfH), new(0, 0, -1)));
+        for (int i = 0; i <= segments; i++)
+        {
+            float angle = i * 2 * MathF.PI / segments;
+            vertList.Add(new Vertex(new(radius * MathF.Cos(angle), radius * MathF.Sin(angle), -halfH), new(0, 0, -1)));
+        }
+        for (int i = 0; i < segments; i++)
+        {
+            idxList.Add((uint)(botCenter));
+            idxList.Add((uint)(botCenter + i + 1));
+            idxList.Add((uint)(botCenter + i + 2));
+        }
+
+        vertices = vertList.ToArray();
+        indices = idxList.ToArray();
+    }
+
+    /// <summary>
+    /// 获取一个圆锥体的顶点和索引数据
+    /// </summary>
+    public static void GetCone(out Vertex[] vertices, out uint[] indices, float radius = 0.5f, float height = 1.0f, int segments = 24)
+    {
+        var vertList = new System.Collections.Generic.List<Vertex>();
+        var idxList = new System.Collections.Generic.List<uint>();
+        float halfH = height / 2;
+
+        // Tip
+        int tip = vertList.Count;
+        vertList.Add(new Vertex(new(0, 0, halfH), new(0, 0, 1)));
+
+        // Base ring
+        int baseStart = vertList.Count;
+        for (int i = 0; i <= segments; i++)
+        {
+            float angle = i * 2 * MathF.PI / segments;
+            float x = radius * MathF.Cos(angle);
+            float y = radius * MathF.Sin(angle);
+            Vector3D<float> n = Vector3D.Normalize(new Vector3D<float>(MathF.Cos(angle), MathF.Sin(angle), 0.5f));
+            vertList.Add(new Vertex(new(x, y, -halfH), n));
+        }
+
+        for (int i = 0; i < segments; i++)
+        {
+            idxList.Add((uint)(baseStart + i));
+            idxList.Add((uint)tip);
+            idxList.Add((uint)(baseStart + i + 1));
+        }
+
+        // Base cap
+        int botCenter = vertList.Count;
+        vertList.Add(new Vertex(new(0, 0, -halfH), new(0, 0, -1)));
+        for (int i = 0; i <= segments; i++)
+        {
+            float angle = i * 2 * MathF.PI / segments;
+            vertList.Add(new Vertex(new(radius * MathF.Cos(angle), radius * MathF.Sin(angle), -halfH), new(0, 0, -1)));
+        }
+        for (int i = 0; i < segments; i++)
+        {
+            idxList.Add((uint)(botCenter));
+            idxList.Add((uint)(botCenter + i + 1));
+            idxList.Add((uint)(botCenter + i + 2));
+        }
+
+        vertices = vertList.ToArray();
+        indices = idxList.ToArray();
+    }
+
+    /// <summary>
+    /// 获取一个圆环体的顶点和索引数据
+    /// </summary>
+    public static void GetTorus(out Vertex[] vertices, out uint[] indices, float mainRadius = 0.6f, float tubeRadius = 0.2f, int segments = 24, int sides = 12)
+    {
+        var vertList = new System.Collections.Generic.List<Vertex>();
+        var idxList = new System.Collections.Generic.List<uint>();
+
+        for (int i = 0; i <= segments; i++)
+        {
+            float u = i * 2 * MathF.PI / segments;
+            float cosU = MathF.Cos(u), sinU = MathF.Sin(u);
+
+            for (int j = 0; j <= sides; j++)
+            {
+                float v = j * 2 * MathF.PI / sides;
+                float cosV = MathF.Cos(v), sinV = MathF.Sin(v);
+
+                float x = (mainRadius + tubeRadius * cosV) * cosU;
+                float y = (mainRadius + tubeRadius * cosV) * sinU;
+                float z = tubeRadius * sinV;
+
+                Vector3D<float> n = Vector3D.Normalize(new Vector3D<float>(cosV * cosU, cosV * sinU, sinV));
+                vertList.Add(new Vertex(new(x, y, z), n, texCoord: new((float)i / segments, (float)j / sides)));
+            }
+        }
+
+        for (int i = 0; i < segments; i++)
+        {
+            int row = i * (sides + 1);
+            int next = (i + 1) * (sides + 1);
+            for (int j = 0; j < sides; j++)
+            {
+                int a = row + j, b = next + j, c = row + j + 1, d = next + j + 1;
+                idxList.Add((uint)a); idxList.Add((uint)c); idxList.Add((uint)b);
+                idxList.Add((uint)b); idxList.Add((uint)c); idxList.Add((uint)d);
+            }
+        }
+
+        vertices = vertList.ToArray();
+        indices = idxList.ToArray();
+    }
+
+    /// <summary>
     /// 获取一个平面的顶点和索引数据
     /// </summary>
     /// <param name="vertices">输出的顶点数组</param>
