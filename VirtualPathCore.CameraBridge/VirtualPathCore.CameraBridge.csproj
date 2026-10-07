@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>VirtualPathCore.CameraBridge</RootNamespace>
+    <AssemblyName>VirtualPathCore.CameraBridge</AssemblyName>
+    <!-- 需要 RID，GLFW 等原生库才会被复制到输出目录 -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <!-- 本工程定位为 Windows 桌面工具，System.Drawing 的平台告警不适用 -->
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <!-- 独立验证程序：不加入 VirtualPathCore.sln，避免干扰引擎本体正在进行的改动 -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 唯一的外部依赖：提供无窗口的 GL 上下文（引擎此前完全依赖 Avalonia 供给上下文）。
+         Silk.NET.GLFW 会传递引入 Ultz.Native.GLFW（提供 glfw3.dll）。 -->
+    <PackageReference Include="Silk.NET.GLFW" Version="2.22.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VirtualPathCore\VirtualPathCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 与 SimpleDrawingService 相同的着色器目录布局，保证读取路径一致 -->
+    <None Include="..\VirtualPathCore\Resources\Shaders\**\*.vert;..\VirtualPathCore\Resources\Shaders\**\*.frag"
+          LinkBase="Resources\Shaders"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
