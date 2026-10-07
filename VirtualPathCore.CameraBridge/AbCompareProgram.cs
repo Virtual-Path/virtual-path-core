@@ -64,6 +64,13 @@ internal static class AbCompareProgram
             ("pitch_-45",     -45f,  180f, 6f),
         };
 
+        // Count reddish pixels by channel dominance, not by absolute brightness.
+        // The face pointing at the camera faces away from the key light, so it
+        // only receives ambient (AmbientIntensity 0.3 * albedo 0.9 = 0.27 ->
+        // r ~= 69) and an absolute "r > 70" threshold sits right on the boundary
+        // and reports a solid cube as empty.
+        static bool IsReddish(int r, int g, int b) => r > 40 && r > g + 25 && r > b + 25;
+
         foreach (var (tag, pitch, yaw, dist) in poses)
         {
             drawing.SetCameraPose(look, dist, pitch, yaw);
@@ -73,7 +80,7 @@ internal static class AbCompareProgram
             int cnt = 0;
             for (int i = 0; i < p.Length; i += 4)
             {
-                if (p[i] > 70 && p[i + 1] < 90 && p[i + 2] < 90) cnt++;
+                if (IsReddish(p[i], p[i + 1], p[i + 2])) cnt++;
             }
             Console.WriteLine($"  [{tag,-14}] red = {cnt / (double)(p.Length / 4),7:P2}");
         }
@@ -111,7 +118,7 @@ internal static class AbCompareProgram
         {
             int r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
             if (r + g + b > 60) any++;
-            if (r > 70 && g < 90 && b < 90) red++;
+            if (IsReddish(r, g, b)) red++;
         }
         int total = pixels.Length / 4;
 
@@ -120,8 +127,13 @@ internal static class AbCompareProgram
         Console.WriteLine($"  red pixels : {red / (double)total:P2}");
         Console.WriteLine($"  wrote {outPath}");
 
-        // 边长 2 的立方体在距离 6、FOV 45 下约占画面 1/4 高度
-        bool ok = red / (double)total > 0.05;
+        // A 2-unit cube at distance 6 with a 45 deg vertical FOV: its near face is
+        // 5 away (camera at x=6, cube half-width 1), so the near face covers
+        // (1/5) / tan(22.5 deg) = 48.3% of the half-height -> 348px tall,
+        // i.e. about 13% of a 1280x720 frame. Measured 12.94%.
+        double expected = 0.13;
+        bool ok = red / (double)total > expected * 0.7 && red / (double)total < expected * 1.4;
+        Console.WriteLine($"  expected   : ~{expected:P1} of frame (front face, {width}x{height})");
         Console.WriteLine();
         Console.WriteLine(ok
             ? "RESULT: PASS - engine cube renders as a solid box."

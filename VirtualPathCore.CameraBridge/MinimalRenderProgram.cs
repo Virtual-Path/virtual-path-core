@@ -56,7 +56,7 @@ internal static class MinimalRenderProgram
         }
 
         pipeline.SetUniform("ObjectToWorld", model);
-        pipeline.SetUniform("NormalMatrix", model.Invert());
+        pipeline.SetUniform("WorldToObject", model.Invert());
         pipeline.SetUniform("ObjectToClip", clip);
         pipeline.SetUniform("Albedo", new Vector4D<float>(0.9f, 0.2f, 0.2f, 1f));
         pipeline.SetUniform("Metallic", 0.0f);
@@ -71,6 +71,14 @@ internal static class MinimalRenderProgram
 
         mesh.Draw();
         pipeline.Unbind();
+
+        // Read the cull state back rather than trusting the calls. Three cull modes
+        // producing identical output usually means the state never landed, and
+        // guessing from pixel coverage alone is unreliable for convex solids.
+        bool cullEnabled = gl.IsEnabled(GLEnum.CullFace);
+        var modeVal = new int[1];
+        gl.GetInteger(GLEnum.CullFaceMode, modeVal);
+        gl.GetError();   // drop any error raised before the readback
 
         byte[] px = target.ReadPixelsRgba();
         int red = 0;
@@ -88,7 +96,7 @@ internal static class MinimalRenderProgram
         string mean = red > 0
             ? $"rgb=({sumR / (double)red,6:F1},{sumG / (double)red,5:F1},{sumB / (double)red,5:F1})"
             : "rgb=(n/a)";
-        Console.WriteLine($"  [{label,-10}] red = {ratio,7:P2}  {mean}  glErr={gl.GetError()}");
+        Console.WriteLine($"  [{label,-10}] red = {ratio,7:P2}  {mean}  cull={(cullEnabled ? modeVal[0].ToString() : "off")}  glErr={gl.GetError()}");
     }
 
     /// <summary>
@@ -130,7 +138,7 @@ internal static class MinimalRenderProgram
         target.Bind();
         pipeline.Bind();
         pipeline.SetUniform("ObjectToWorld", model);
-        pipeline.SetUniform("NormalMatrix", model.Invert());
+        pipeline.SetUniform("WorldToObject", model.Invert());
         pipeline.SetUniform("ObjectToClip", clip);
         pipeline.SetUniform("Albedo", new Vector4D<float>(0.2f, 0.8f, 0.9f, 1f));
         pipeline.SetUniform("Metallic", 0f);
@@ -247,7 +255,7 @@ internal static class MinimalRenderProgram
         pipeline.Bind();
 
         pipeline.SetUniform("ObjectToWorld", model);
-        pipeline.SetUniform("NormalMatrix", model.Invert());
+        pipeline.SetUniform("WorldToObject", model.Invert());
         pipeline.SetUniform("ObjectToClip", clip);
         pipeline.SetUniform("Albedo", new Vector4D<float>(0.9f, 0.2f, 0.2f, 1f));
         pipeline.SetUniform("Metallic", 0.0f);
