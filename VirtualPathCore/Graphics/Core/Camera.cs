@@ -68,8 +68,38 @@ public class Camera
 
     public float AspectRatio => Height > 0 ? (float)Width / Height : 1.0f;
 
-    public Matrix4X4<float> View => Matrix4X4.CreateLookAt(Position, Position + Front, Up);
+    /// <summary>
+    /// 视图矩阵（行向量布局，与 <see cref="Projection"/> 及 <c>Transform</c> 一致）。
+    /// </summary>
+    /// <remarks>
+    /// <para>本引擎统一使用<b>行向量</b>约定（<c>v * M</c>），矩阵链为
+    /// <c>model * view * projection</c>。</para>
+    /// <para><b>不要在此转置</b>。曾因误判 <c>CreateLookAt</c> 的元素布局而加过
+    /// <c>Transpose</c>，结果场景物体尺寸放大 3.7 倍（实测 720px vs 期望 193px），
+    /// 随后回退。</para>
+    /// <para>当前约定的依据：在 GPU 上穷举 16 种
+    /// (<c>SetUniform</c> 的 transpose 上传 x View 是否转置 x 4 种乘法顺序) 组合，
+    /// 以各向同性球的<b>形状 + 尺寸 + 居中</b>三项为判据，
+    /// 只有 <c>transpose=false + View 原样 + M*V*P</c> 全部通过
+    /// (w/h=1.010、192px vs 期望 193px)。</para>
+    /// <para>本属性当前与 HEAD 一致，未做实质改动。此前记录的"历史故障根因是
+    /// <c>SetUniform</c> 误传 transpose=true"并不成立 —— HEAD 一直是
+    /// <c>false</c>，该说法已作废。</para>
+    /// </remarks>
+    public Matrix4X4<float> View =>
+        Matrix4X4.CreateLookAt(Position, Position + Front, Up);
 
+    /// <summary>
+    /// 投影矩阵。
+    /// </summary>
+    /// <remarks>
+    /// 本引擎的矩阵链按<b>行向量</b>约定合成（<c>v * M</c>，见
+    /// <c>SimpleDrawingService</c> 里的 <c>model * view * projection</c>
+    /// 与 <c>Transform.UpdateMatrix</c>）。
+    /// <see cref="Matrix4X4.CreatePerspectiveFieldOfView"/> / <c>CreateOrthographic</c>
+    /// 产出的矩阵同样是行向量布局：透视除法的 <c>-1</c> 落在 <b>M34</b>，
+    /// 近/远平面偏移落在 <b>M43</b>，可直接参与行向量链式运算，<b>不要转置</b>。
+    /// </remarks>
     public Matrix4X4<float> Projection => ProjectionType switch
     {
         ProjectionType.Perspective => Matrix4X4.CreatePerspectiveFieldOfView(_fov, AspectRatio, Near, Far),
@@ -197,16 +227,31 @@ public class OrbitCameraController : CameraController
         _target += up * (deltaY * _panSpeed * _distance);
     }
 
+    /// <summary>
+    /// 依据当前环绕角与距离更新相机位置，并使其朝向目标。
+    /// </summary>
+    /// <remarks>
+    /// 角度约定（重要）：
+    /// <see cref="Camera.Yaw"/> / <see cref="Camera.Pitch"/> 描述的是<b>视线方向</b>
+    /// （由 <c>Camera.UpdateVectors</c> 生成，即 <c>Front</c> 向量）。
+    /// 相机位于目标的<b>视线反方向</b>上，所以位置为 <c>target - d * viewDir</c>。
+    ///
+    /// 这样 <see cref="Camera.LookAt(Vector3D{float})"/> 反推出的角度与写入值一致，
+    /// 每帧不会互相翻转（早先按 <c>target + d * viewDir</c> 计算会导致 Yaw/Pitch 每帧跳变）。
+    /// </remarks>
     public override void Update(double deltaTime)
     {
         float yawRad = MathHelper.DegreesToRadians(Camera.Yaw);
         float pitchRad = MathHelper.DegreesToRadians(Camera.Pitch);
 
-        float x = _distance * MathF.Cos(pitchRad) * MathF.Cos(yawRad);
-        float y = _distance * MathF.Sin(pitchRad);
-        float z = _distance * MathF.Cos(pitchRad) * MathF.Sin(yawRad);
+        var viewDir = new Vector3D<float>(
+            MathF.Cos(pitchRad) * MathF.Cos(yawRad),
+            MathF.Sin(pitchRad),
+            MathF.Cos(pitchRad) * MathF.Sin(yawRad));
 
-        Camera.SetPosition(_target.X + x, _target.Y + y, _target.Z + z);
+        Vector3D<float> position = _target - viewDir * _distance;
+
+        Camera.SetPosition(position.X, position.Y, position.Z);
         Camera.LookAt(_target);
     }
 }

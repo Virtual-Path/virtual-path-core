@@ -11,6 +11,47 @@ namespace VirtualPathCore.Helpers
     public static unsafe class MeshFactory
     {
         /// <summary>
+        /// 修补顶点数据中的切线/副切线。
+        ///
+        /// <see cref="Vertex"/> 的 <c>Tangent</c> / <c>Bitangent</c> 默认为零向量，
+        /// 而 <c>PBR.vert</c> 会对它们执行 <c>normalize()</c>。
+        /// <c>normalize(vec3(0))</c> 在 GLSL 中返回 <b>NaN</b>，
+        /// NaN 写入 varying 后会污染相邻像素，导致几何体在画面上被撕成细长"刀片"。
+        ///
+        /// 这里按"当前面法线与世界上方向叉乘"补一个与法线正交的切线，
+        /// 副切线取其叉乘，构成右手 TBN 基。未使用法线贴图时该值不影响着色，
+        /// 但能保证着色器输入合法。
+        /// </summary>
+        /// <param name="vertices">待修补的顶点数组（原地修改）</param>
+        public static void EnsureTangents(Vertex[] vertices)
+        {
+            if (vertices == null)
+                return;
+
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                Vertex v = vertices[i];
+
+                Vector3D<float> n = v.Normal;
+                float nLen = MathF.Sqrt(n.X * n.X + n.Y * n.Y + n.Z * n.Z);
+                if (nLen > 1e-6f)
+                    n /= nLen;
+
+                // 参考轴：与法线夹角最大的坐标轴，避免叉乘退化
+                Vector3D<float> up = MathF.Abs(n.Y) < 0.99f
+                    ? new Vector3D<float>(0f, 1f, 0f)
+                    : new Vector3D<float>(1f, 0f, 0f);
+
+                var t = Vector3D.Normalize(Vector3D.Cross(up, n));
+                var b = Vector3D.Cross(n, t);
+
+                v.Tangent = t;
+                v.Bitangent = b;
+                vertices[i] = v;
+            }
+        }
+
+        /// <summary>
         /// 获取一个立方体的顶点和索引数据
         /// </summary>
         /// <param name="vertices">输出的顶点数组</param>
@@ -69,6 +110,7 @@ namespace VirtualPathCore.Helpers
                 new(new(-size, -size, -size), new(-1.0f, 0.0f, 0.0f), texCoord: new(0.0f, 0.0f))
             ];
 
+            EnsureTangents(vertices);
             indices = vertices.Select((a, b) => (uint)b).ToArray();
         }
 
@@ -127,6 +169,7 @@ namespace VirtualPathCore.Helpers
         }
 
         vertices = vertList.ToArray();
+        EnsureTangents(vertices);
         indices = idxList.ToArray();
     }
 
@@ -187,6 +230,7 @@ namespace VirtualPathCore.Helpers
         }
 
         vertices = vertList.ToArray();
+        EnsureTangents(vertices);
         indices = idxList.ToArray();
     }
 
@@ -237,6 +281,7 @@ namespace VirtualPathCore.Helpers
         }
 
         vertices = vertList.ToArray();
+        EnsureTangents(vertices);
         indices = idxList.ToArray();
     }
 
@@ -280,6 +325,7 @@ namespace VirtualPathCore.Helpers
         }
 
         vertices = vertList.ToArray();
+        EnsureTangents(vertices);
         indices = idxList.ToArray();
     }
 
@@ -300,6 +346,7 @@ namespace VirtualPathCore.Helpers
                 new(new(-1.0f, 1.0f, 0.0f), new(0.0f, 0.0f, 1.0f), texCoord: new(0.0f, 1.0f))
             ];
 
+            EnsureTangents(vertices);
             indices = vertices.Select((a, b) => (uint)b).ToArray();
         }
     }

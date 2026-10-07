@@ -28,6 +28,7 @@ uniform sampler2D NormalMap;
 void main()
 {
     vec3 N = normalize(VS_Normal);
+
     vec3 V = normalize(CameraPos - VS_WorldPos);
 
     vec3 lightDir = normalize(-Light0Dir);
@@ -43,7 +44,10 @@ void main()
         N = normalize(VS_TBN * tangentNormal);
     }
 
-    vec3 ambient = 0.03 * albedo.rgb;
+    // Ambient term must be driven by the AmbientIntensity uniform.
+    // It used to be hardcoded to 0.03 here, which ignored the uniform entirely
+    // (the engine sets 0.3) and made every surface render near-black.
+    vec3 ambient = AmbientIntensity * albedo.rgb;
 
     float diff = max(dot(N, lightDir), 0.0);
     vec3 diffuse = diff * lightColor * albedo.rgb;
@@ -52,7 +56,10 @@ void main()
     float spec = pow(max(dot(N, H), 0.0), (1.0 - Roughness) * 128.0 + 1.0);
     vec3 specColor = spec * lightColor * mix(vec3(1.0), albedo.rgb, Metallic);
 
-    vec3 color = ambient + (1.0 - AmbientIntensity) * (diffuse + specColor);
+    // Direct light is scaled by its own intensity only. It used to be multiplied
+    // by (1.0 - AmbientIntensity), which dimmed the sun whenever ambient was
+    // raised and left nothing to separate the two controls.
+    vec3 color = ambient + diffuse + specColor;
 
     Out_Color = vec4(color, albedo.a);
 }

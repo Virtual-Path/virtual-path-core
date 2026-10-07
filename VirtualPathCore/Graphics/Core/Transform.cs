@@ -173,6 +173,13 @@ public class Transform
 
     private void UpdateMatrix()
     {
+        // 顺序：Scale * Rotation * Translation。
+        //
+        // 引擎的矩阵链是行向量约定（见 RenderPipeline.SetUniform 的说明）：
+        // Silk 的 `A * B` 对行向量 v 等价于先作用 B 再作用 A，
+        // 所以链尾的 Translation 最后生效，把物体放到世界空间。
+        // 若改成 Translation * Rotation * Scale，平移会被后续的缩放吃掉
+        // （例如 scale=2 时位置被放大一倍）。
         _localMatrix = Matrix4X4.CreateScale(_scale) *
                        Matrix4X4.CreateFromQuaternion(_rotation) *
                        Matrix4X4.CreateTranslation(_position);
