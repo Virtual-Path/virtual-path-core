@@ -115,10 +115,15 @@ internal sealed class MjpegServer : IDisposable
 
     private async Task ServeClientAsync(TcpClient client, CancellationToken ct)
     {
+        // 提到 try 外：finally 需要判断"这个连接是否真的成为了 MJPEG 流"，
+        // 才能决定要不要清理共享的 _stream / HasClient。
+        NetworkStream? stream = null;
+        bool becameStream = false;
+
         try
         {
             client.NoDelay = true;    // MJPEG 帧小且要求低延迟，关闭 Nagle
-            NetworkStream stream = client.GetStream();
+            stream = client.GetStream();
 
             // ---- 最小 HTTP 请求解析：只关心第一行与路径 ----
             string? requestLine = await ReadRequestLineAsync(stream, ct).ConfigureAwait(false);
@@ -139,6 +144,10 @@ internal sealed class MjpegServer : IDisposable
                 await stream.WriteAsync(head, ct).ConfigureAwait(false);
                 await stream.WriteAsync(body, ct).ConfigureAwait(false);
                 await stream.FlushAsync(ct).ConfigureAwait(false);
+
+                // 打印实际请求的路径：客户端配错路径时会在这里直接暴露，
+                // 否则只看到一串无信息的 "client disconnected"。
+                Console.WriteLine($"[serve] rejected {path} (only /cam1 is served)");
                 return;
             }
 
@@ -155,6 +164,7 @@ internal sealed class MjpegServer : IDisposable
 
             _stream = stream;
             HasClient = true;
+            becameStream = true;
             Console.WriteLine($"[serve] client connected: {client.Client.RemoteEndPoint}");
 
             // 保持连接直到取消；写失败（对端关闭）由 PushFrame 的返回值体现
@@ -173,14 +183,28 @@ internal sealed class MjpegServer : IDisposable
         }
         finally
         {
-            HasClient = false;
-            _stream = null;
+            // 只有曾经成为 MJPEG 流的连接才需要清理状态。
+            //
+            // 若无条件执行 _stream = null，会踩到竞态：新连接已经把 _stream 指向
+            // 自己的流之后，旧连接的 finally 才跑完，于是把新连接的流清成 null，
+            // 表现为"画面莫名其妙停住"，而日志里毫无线索。
+            if (becameStream)
+            {
+                lock (_writeLock)
+                {
+                    if (ReferenceEquals(_stream, stream))
+                    {
+                        _stream = null;
+                        HasClient = false;
+                    }
+                }
+                Console.WriteLine("[serve] client disconnected");
+            }
 
             lock (_writeLock)
             {
                 try { client.Close(); } catch { /* 已关闭 */ }
             }
-            Console.WriteLine("[serve] client disconnected");
         }
     }
 
