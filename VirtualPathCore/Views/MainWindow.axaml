@@ -31,55 +31,64 @@
         </Border>
 
         <!-- ===== Toolbar ===== -->
-        <Border Grid.Row="1" Grid.ColumnSpan="3" Background="{StaticResource PanelBgBrush}" Padding="8,5" BorderThickness="0,0,0,1" BorderBrush="{StaticResource DividerBrush}">
-            <StackPanel Orientation="Horizontal" Spacing="3">
-                <Button Content="Undo" Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
-                <Button Content="Redo" Command="{Binding RedoCommand}" IsEnabled="{Binding CanRedo}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
-                <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="6,0"/>
+        <Border Grid.Row="1" Grid.ColumnSpan="3" Background="{StaticResource PanelBgBrush}" Padding="10,6" BorderThickness="0,0,0,1" BorderBrush="{StaticResource DividerBrush}">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <Button Content="Undo" Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Button Content="Redo" Command="{Binding RedoCommand}" IsEnabled="{Binding CanRedo}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="8,0"/>
                 <Button Content="T" Command="{Binding SetGizmoTranslateCommand}" Height="28" Width="32" FontSize="12" FontWeight="Bold" Padding="0" CornerRadius="6"/>
                 <Button Content="R" Command="{Binding SetGizmoRotateCommand}" Height="28" Width="32" FontSize="12" FontWeight="Bold" Padding="0" CornerRadius="6"/>
                 <Button Content="S" Command="{Binding SetGizmoScaleCommand}" Height="28" Width="32" FontSize="12" FontWeight="Bold" Padding="0" CornerRadius="6"/>
-                <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="6,0"/>
-                <Button Content="Frame" Command="{Binding FrameSelectedCommand}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
-                <Button Content="Reset" Command="{Binding ResetCameraCommand}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
-                <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="6,0"/>
-                <ToggleButton Content="Top" IsChecked="{Binding ShowTopView}" Height="28" FontSize="11" Padding="8,0" CornerRadius="6"/>
-                <ToggleButton Content="Front" IsChecked="{Binding ShowFrontView}" Height="28" FontSize="11" Padding="8,0" CornerRadius="6"/>
-                <ToggleButton Content="Right" IsChecked="{Binding ShowRightView}" Height="28" FontSize="11" Padding="8,0" CornerRadius="6"/>
-                <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="6,0"/>
-                <Button Content="+ Cube" Command="{Binding AddCubeCommand}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
-                <Button Content="+ Sphere" Command="{Binding AddSphereCommand}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
-                <Button Content="+ Cylinder" Command="{Binding AddCylinderCommand}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
-                <Button Content="+ Cone" Command="{Binding AddConeCommand}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
-                <Button Content="+ Torus" Command="{Binding AddTorusCommand}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
-                <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="6,0"/>
-                <Button Content="+ Dir Light" Command="{Binding AddDirectionalLightCommand}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
-                <Button Content="+ Point Light" Command="{Binding AddPointLightCommand}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
+                <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="8,0"/>
+                <Button Content="Frame" Command="{Binding FrameSelectedCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Button Content="Reset" Command="{Binding ResetCameraCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="8,0"/>
+                <Button Content="Add Key" Command="{Binding AddKeyframeCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Button Content="Play" Command="{Binding PlayAnimationCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Button Content="Pause" Command="{Binding PauseAnimationCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Button Content="Stop" Command="{Binding StopAnimationCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="8,0"/>
+                <ToggleButton Content="Top" IsChecked="{Binding ShowTopView}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
+                <ToggleButton Content="Front" IsChecked="{Binding ShowFrontView}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
+                <ToggleButton Content="Right" IsChecked="{Binding ShowRightView}" Height="28" FontSize="11" Padding="10,0" CornerRadius="6"/>
+                <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="8,0"/>
+                <Button Content="+ Cube" Command="{Binding AddCubeCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Button Content="+ Sphere" Command="{Binding AddSphereCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Button Content="+ Cylinder" Command="{Binding AddCylinderCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Button Content="+ Cone" Command="{Binding AddConeCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Button Content="+ Torus" Command="{Binding AddTorusCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="8,0"/>
+                <Button Content="+ Dir Light" Command="{Binding AddDirectionalLightCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
+                <Button Content="+ Point Light" Command="{Binding AddPointLightCommand}" Height="28" FontSize="11" Padding="12,0" CornerRadius="6"/>
             </StackPanel>
         </Border>
 
         <!-- ===== Sidebar: Scene ===== -->
-        <Border x:Name="SidebarBorder" Grid.Row="2" Background="{StaticResource SidebarBgBrush}" BorderThickness="0,0,0,0">
-            <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="0,0,1,0">
+        <Border x:Name="SidebarBorder" Grid.Row="2" Background="{StaticResource SidebarBgBrush}" BorderThickness="0,0,1,0" BorderBrush="{StaticResource DividerBrush}">
+            <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="0">
                 <!-- Header -->
-                <Border Grid.Row="0" Padding="12,14,12,6">
+                <Border Grid.Row="0" Padding="14,16,14,8">
                     <Grid ColumnDefinitions="*,Auto,Auto">
                         <TextBlock Text="Scene" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                        <Button Grid.Column="1" Content="+" Width="22" Height="22" Padding="0" FontSize="14" CornerRadius="6" Background="Transparent" BorderThickness="0" Command="{Binding ExpandAllCommand}" Margin="0,0,4,0"/>
-                        <Button Grid.Column="2" Content="−" Width="22" Height="22" Padding="0" FontSize="14" CornerRadius="6" Background="Transparent" BorderThickness="0" Command="{Binding CollapseAllCommand}"/>
+                        <Button Grid.Column="1" Content="+" Width="24" Height="24" Padding="0" FontSize="14" CornerRadius="6" Background="Transparent" BorderThickness="0" Command="{Binding ExpandAllCommand}" Margin="0,0,6,0"/>
+                        <Button Grid.Column="2" Content="−" Width="24" Height="24" Padding="0" FontSize="14" CornerRadius="6" Background="Transparent" BorderThickness="0" Command="{Binding CollapseAllCommand}"/>
                     </Grid>
                 </Border>
 
                 <!-- Search -->
-                <TextBox Grid.Row="1" Text="{Binding SearchFilter}" Watermark="Search objects..." Margin="12,0,12,8"
-                         FontSize="12" Padding="8,6" BorderThickness="1" CornerRadius="6"/>
+                <TextBox Grid.Row="1" Text="{Binding SearchFilter}" Watermark="Search objects..." Margin="14,0,14,10"
+                         FontSize="12" Padding="10,7" BorderThickness="1" CornerRadius="6"/>
 
                 <!-- List -->
                 <ListBox Grid.Row="2" x:Name="SceneObjectList"
                          ItemsSource="{Binding SceneObjects}"
                          SelectedItem="{Binding SelectedObject}"
                          Background="Transparent" BorderThickness="0"
-                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         DragDrop.AllowDrop="True"
+                         DragDrop.DragOver="SceneObjectList_DragOver"
+                         DragDrop.Drop="SceneObjectList_Drop"
+                         PointerPressed="SceneObjectList_PointerPressed">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:SceneObjectViewModel">
                             <Grid ColumnDefinitions="Auto,*,Auto" Margin="2,0" Height="28">
@@ -91,7 +100,9 @@
                                 <TextBox Grid.Column="1" Text="{Binding Name}"
                                          Background="Transparent" BorderThickness="0"
                                          Foreground="{StaticResource TextPrimaryBrush}"
-                                         Padding="2,0" VerticalAlignment="Center" FontSize="12"/>
+                                         Padding="2,0" VerticalAlignment="Center" FontSize="12"
+                                         KeyDown="OnObjectNameKeyDown"
+                                         LostFocus="OnObjectNameLostFocus"/>
                                 <CheckBox Grid.Column="2" IsChecked="{Binding IsVisible}" Foreground="{StaticResource TextTertiaryBrush}" Margin="0,0,2,0" VerticalAlignment="Center"/>
                             </Grid>
                         </DataTemplate>
@@ -123,37 +134,41 @@
 
         <!-- ===== Properties ===== -->
         <Border x:Name="PropertiesBorder" Grid.Row="2" Grid.Column="2" Background="{StaticResource SidebarBgBrush}" BorderThickness="1,0,0,0" BorderBrush="{StaticResource DividerBrush}">
-            <Grid RowDefinitions="Auto,Auto,*,Auto">
+            <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="0">
                 <!-- Header -->
-                <Border Grid.Row="0" Padding="12,12,12,6" BorderThickness="0,0,0,1" BorderBrush="{StaticResource DividerBrush}">
+                <Border Grid.Row="0" Padding="14,14,14,8" BorderThickness="0,0,0,1" BorderBrush="{StaticResource DividerBrush}">
                     <TextBlock Text="Properties" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextTertiaryBrush}" LetterSpacing="0.5"/>
                 </Border>
 
                 <!-- Quick add -->
-                <Border Grid.Row="1" Margin="12,10,12,8" Padding="10" Background="{StaticResource CardBgBrush}" CornerRadius="6">
-                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="4" RowSpacing="6">
-                        <TextBlock Grid.ColumnSpan="2" Text="Add" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextTertiaryBrush}" LetterSpacing="0.8"/>
-                        <Button Grid.Row="1" Grid.Column="0" Content="＋" Command="{Binding AddCubeCommand}" Height="24" Width="28" FontSize="14" Padding="0"/>
-                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="2">
-                            <Button Content="Sphere" Command="{Binding AddSphereCommand}" Height="22" FontSize="10" Padding="6,0" BorderThickness="0" Background="Transparent"/>
-                            <Button Content="Cylinder" Command="{Binding AddCylinderCommand}" Height="22" FontSize="10" Padding="6,0" BorderThickness="0" Background="Transparent"/>
-                            <Button Content="Cone" Command="{Binding AddConeCommand}" Height="22" FontSize="10" Padding="6,0" BorderThickness="0" Background="Transparent"/>
-                            <Button Content="Torus" Command="{Binding AddTorusCommand}" Height="22" FontSize="10" Padding="6,0" BorderThickness="0" Background="Transparent"/>
-                        </StackPanel>
-                    </Grid>
+                <Border Grid.Row="1" Margin="14,12,14,10" Padding="12" Background="{StaticResource CardBgBrush}" CornerRadius="8">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Add" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextTertiaryBrush}" LetterSpacing="0.8"/>
+                        <Button Content="＋  Add Primitive" Height="28" FontSize="11" HorizontalAlignment="Stretch" CornerRadius="6" Padding="10,0">
+                            <Button.Flyout>
+                                <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                    <MenuItem Header="Cube" Command="{Binding AddCubeCommand}"/>
+                                    <MenuItem Header="Sphere" Command="{Binding AddSphereCommand}"/>
+                                    <MenuItem Header="Cylinder" Command="{Binding AddCylinderCommand}"/>
+                                    <MenuItem Header="Cone" Command="{Binding AddConeCommand}"/>
+                                    <MenuItem Header="Torus" Command="{Binding AddTorusCommand}"/>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
                 </Border>
 
                 <!-- Properties content -->
-                <ScrollViewer Grid.Row="2" Margin="12,0,12,0">
-                    <Grid>
-                        <StackPanel Spacing="8" IsVisible="{Binding HasSelectedObject}">
-                            <StackPanel DataContext="{Binding SelectedObject}" Spacing="8">
+                <ScrollViewer Grid.Row="2" Margin="14,0,14,0">
+                    <StackPanel Spacing="10">
+                        <StackPanel Spacing="10" IsVisible="{Binding HasSelectedObject}">
+                            <StackPanel DataContext="{Binding SelectedObject}" Spacing="10">
 
                                 <!-- Transform -->
-                                <Border Padding="10" Background="{StaticResource CardBgBrush}" CornerRadius="6">
-                                    <StackPanel Spacing="6">
+                                <Border Padding="12" Background="{StaticResource CardBgBrush}" CornerRadius="8">
+                                    <StackPanel Spacing="8">
                                         <TextBlock Text="TRANSFORM" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextTertiaryBrush}" LetterSpacing="1"/>
-                                        <Grid ColumnDefinitions="Auto,*,36" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="6" RowSpacing="5">
+                                        <Grid ColumnDefinitions="Auto,*,40" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="X" Foreground="{StaticResource AccentRedBrush}" VerticalAlignment="Center" FontSize="11" FontWeight="Bold" Width="12"/>
                                             <Slider Grid.Row="0" Grid.Column="1" Minimum="-10" Maximum="10" Value="{Binding PositionX}" Margin="0,2,0,0"/>
                                             <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding PositionX, StringFormat={}{0:F2}}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
@@ -168,10 +183,10 @@
                                 </Border>
 
                                 <!-- Scale -->
-                                <Border Padding="10" Background="{StaticResource CardBgBrush}" CornerRadius="6">
-                                    <StackPanel Spacing="6">
+                                <Border Padding="12" Background="{StaticResource CardBgBrush}" CornerRadius="8">
+                                    <StackPanel Spacing="8">
                                         <TextBlock Text="SCALE" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextTertiaryBrush}" LetterSpacing="1"/>
-                                        <Grid ColumnDefinitions="Auto,*,36" ColumnSpacing="6">
+                                        <Grid ColumnDefinitions="Auto,*,40" ColumnSpacing="8">
                                             <TextBlock Text="S" Foreground="{StaticResource AccentOrangeBrush}" VerticalAlignment="Center" FontSize="11" FontWeight="Bold" Width="12"/>
                                             <Slider Grid.Column="1" Minimum="0.1" Maximum="5" Value="{Binding ScaleX}" Margin="0,2,0,0"/>
                                             <TextBlock Grid.Column="2" Text="{Binding ScaleX, StringFormat={}{0:F2}}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
@@ -180,10 +195,10 @@
                                 </Border>
 
                                 <!-- Material -->
-                                <Border Padding="10" Background="{StaticResource CardBgBrush}" CornerRadius="6">
-                                    <StackPanel Spacing="6">
+                                <Border Padding="12" Background="{StaticResource CardBgBrush}" CornerRadius="8">
+                                    <StackPanel Spacing="8">
                                         <TextBlock Text="MATERIAL" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextTertiaryBrush}" LetterSpacing="1"/>
-                                        <Grid ColumnDefinitions="Auto,*,36" RowDefinitions="Auto,Auto" ColumnSpacing="6" RowSpacing="5">
+                                        <Grid ColumnDefinitions="Auto,*,40" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="6">
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Metallic" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" FontSize="10"/>
                                             <Slider Grid.Row="0" Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Metallic}" Margin="0,2,0,0"/>
                                             <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Metallic, StringFormat={}{0:F2}}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
@@ -191,14 +206,16 @@
                                             <Slider Grid.Row="1" Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Roughness}" Margin="0,2,0,0"/>
                                             <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Roughness, StringFormat={}{0:F2}}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                                         </Grid>
+                                        <Button Content="Select Albedo Map" Command="{Binding SelectAlbedoMapCommand}" Height="26" FontSize="10" HorizontalAlignment="Left" Padding="10,0" Margin="0,4,0,0"/>
+                                        <Button Content="Select Normal Map" Command="{Binding SelectNormalMapCommand}" Height="26" FontSize="10" HorizontalAlignment="Left" Padding="10,0"/>
                                     </StackPanel>
                                 </Border>
 
                                 <!-- Albedo -->
-                                <Border Padding="10" Background="{StaticResource CardBgBrush}" CornerRadius="6">
-                                    <StackPanel Spacing="6">
+                                <Border Padding="12" Background="{StaticResource CardBgBrush}" CornerRadius="8">
+                                    <StackPanel Spacing="8">
                                         <TextBlock Text="ALBEDO" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextTertiaryBrush}" LetterSpacing="1"/>
-                                        <Grid ColumnDefinitions="Auto,*,36" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="6" RowSpacing="5">
+                                        <Grid ColumnDefinitions="Auto,*,40" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="R" Foreground="{StaticResource AccentRedBrush}" VerticalAlignment="Center" FontSize="11" FontWeight="Bold" Width="12"/>
                                             <Slider Grid.Row="0" Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding AlbedoR}" Margin="0,2,0,0"/>
                                             <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding AlbedoR, StringFormat={}{0:F2}}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
@@ -213,10 +230,10 @@
                                 </Border>
 
                                 <!-- Light -->
-                                <Border Padding="10" Background="{StaticResource CardBgBrush}" CornerRadius="6" IsVisible="{Binding IsLight}">
-                                    <StackPanel Spacing="6">
+                                <Border Padding="12" Background="{StaticResource CardBgBrush}" CornerRadius="8" IsVisible="{Binding IsLight}">
+                                    <StackPanel Spacing="8">
                                         <TextBlock Text="LIGHT" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextTertiaryBrush}" LetterSpacing="1"/>
-                                        <Grid ColumnDefinitions="Auto,*,36" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="6" RowSpacing="5">
+                                        <Grid ColumnDefinitions="Auto,*,40" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Intensity" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" FontSize="10"/>
                                             <Slider Grid.Row="0" Grid.Column="1" Minimum="0" Maximum="10" Value="{Binding $parent[Window].DataContext.LightIntensity}" Margin="0,2,0,0"/>
                                             <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding $parent[Window].DataContext.LightIntensity, StringFormat={}{0:F1}}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
@@ -240,21 +257,21 @@
                                 <TextBlock Text="Select an object from the scene" Foreground="{StaticResource TextTertiaryBrush}" FontSize="10" HorizontalAlignment="Center" Opacity="0.6"/>
                             </StackPanel>
                         </Border>
-                    </Grid>
+                    </StackPanel>
                 </ScrollViewer>
 
                 <!-- Bottom bar -->
-                <Border Grid.Row="3" BorderThickness="0,1,0,0" BorderBrush="{StaticResource DividerBrush}" Padding="12,8">
+                <Border Grid.Row="3" BorderThickness="0,1,0,0" BorderBrush="{StaticResource DividerBrush}" Padding="14,10">
                     <Grid ColumnDefinitions="Auto,*,Auto">
                         <CheckBox Grid.Column="0" IsChecked="{Binding ShowGrid}" Content="Grid" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"/>
-                        <Button Grid.Column="2" Content="Clear" Command="{Binding ClearSceneCommand}" Height="24" FontSize="10" Padding="8,0" CornerRadius="4"/>
+                        <Button Grid.Column="2" Content="Clear" Command="{Binding ClearSceneCommand}" Height="26" FontSize="10" Padding="10,0" CornerRadius="6"/>
                     </Grid>
                 </Border>
             </Grid>
         </Border>
 
         <!-- ===== Status Bar ===== -->
-        <Border Grid.Row="3" Grid.ColumnSpan="3" Background="{StaticResource PanelBgBrush}" Padding="14,6" BorderThickness="0,1,0,0" BorderBrush="{StaticResource DividerBrush}">
+        <Border Grid.Row="3" Grid.ColumnSpan="3" Background="{StaticResource PanelBgBrush}" Padding="16,8" BorderThickness="0,1,0,0" BorderBrush="{StaticResource DividerBrush}">
             <Grid ColumnDefinitions="Auto,Auto,*,Auto">
                 <Ellipse Grid.Column="0" Width="6" Height="6" Fill="{StaticResource AccentGreenBrush}" VerticalAlignment="Center" Margin="0,0,8,0" Opacity="0.8"/>
                 <TextBlock Grid.Column="1" Text="{Binding Title}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" VerticalAlignment="Center"/>

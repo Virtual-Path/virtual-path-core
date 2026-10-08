@@ -40,6 +40,95 @@ namespace VirtualPathCore.Views
             LoadingOverlay.IsVisible = true;
         }
 
+        private void SceneObjectList_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+        {
+            if (e.Source is Control control && control.DataContext is SceneObjectViewModel vm)
+            {
+                var dragData = new Avalonia.Input.DataObject();
+                dragData.Set("SceneObjectViewModel", vm);
+                Avalonia.Input.DragDrop.DoDragDrop(e, dragData, Avalonia.Input.DragDropEffects.Move);
+                e.Handled = true;
+            }
+        }
+
+        private void SceneObjectList_DragOver(object? sender, Avalonia.Input.DragEventArgs e)
+        {
+            e.DragEffects = Avalonia.Input.DragDropEffects.Move;
+            e.Handled = true;
+        }
+
+        private void SceneObjectList_Drop(object? sender, Avalonia.Input.DragEventArgs e)
+        {
+            var droppedVm = e.Data.Get("SceneObjectViewModel") as SceneObjectViewModel;
+            if (droppedVm != null)
+            {
+                var target = SceneObjectList.SelectedItem as SceneObjectViewModel;
+                if (target != null && droppedVm != target)
+                {
+                    var parentVm = FindParentViewModel(droppedVm);
+                    if (parentVm != null)
+                        parentVm.RemoveChildViewModel(droppedVm);
+
+                    target.AddChildViewModel(droppedVm);
+                    IsModified = true;
+                }
+            }
+            e.Handled = true;
+        }
+
+        private SceneObjectViewModel? FindParentViewModel(SceneObjectViewModel vm)
+        {
+            if (DataContext is MainViewModel mainVm)
+            {
+                foreach (var child in mainVm.SceneObjects)
+                {
+                    if (FindParentRecursive(child, vm) is SceneObjectViewModel parent)
+                        return parent;
+                }
+            }
+            return null;
+        }
+
+        private SceneObjectViewModel? FindParentRecursive(SceneObjectViewModel parent, SceneObjectViewModel target)
+        {
+            foreach (var child in parent.Children)
+            {
+                if (child == target)
+                    return parent;
+                var result = FindParentRecursive(child, target);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+
+        private bool IsModified
+        {
+            get => DataContext is MainViewModel vm && vm.IsModified;
+            set
+            {
+                if (DataContext is MainViewModel vm)
+                    vm.IsModified = value;
+            }
+        }
+
+        private void OnObjectNameKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && sender is TextBox tb && tb.DataContext is SceneObjectViewModel vm)
+            {
+                vm.Name = tb.Text ?? string.Empty;
+                e.Handled = true;
+            }
+        }
+
+        private void OnObjectNameLostFocus(object? sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox tb && tb.DataContext is SceneObjectViewModel vm)
+            {
+                vm.Name = tb.Text ?? string.Empty;
+            }
+        }
+
         private void OnKeyDown(object? sender, KeyEventArgs e)
         {
             if (DataContext is not MainViewModel vm) return;
@@ -57,10 +146,29 @@ namespace VirtualPathCore.Views
             }
             else if (e.KeyModifiers == KeyModifiers.None)
             {
+                var drawingService = MainViewControl.DrawingService;
                 switch (e.Key)
                 {
                     case Key.F: vm.FrameSelectedCommand.Execute(null); e.Handled = true; break;
                     case Key.Delete: vm.DeleteSelectedCommand.Execute(null); e.Handled = true; break;
+                    case Key.W:
+                        drawingService?.Orbit(0, -2); e.Handled = true; break;
+                    case Key.S:
+                        drawingService?.Orbit(0, 2); e.Handled = true; break;
+                    case Key.A:
+                        drawingService?.Orbit(-2, 0); e.Handled = true; break;
+                    case Key.D:
+                        drawingService?.Orbit(2, 0); e.Handled = true; break;
+                    case Key.Q:
+                        drawingService?.Pan(-2, 0); e.Handled = true; break;
+                    case Key.E:
+                        drawingService?.Pan(2, 0); e.Handled = true; break;
+                    case Key.Add:
+                    case Key.OemPlus:
+                        drawingService?.Zoom(10); e.Handled = true; break;
+                    case Key.Subtract:
+                    case Key.OemMinus:
+                        drawingService?.Zoom(-10); e.Handled = true; break;
                 }
             }
             else if (e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
