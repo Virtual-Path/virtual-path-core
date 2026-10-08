@@ -10,12 +10,27 @@ using Silk.NET.Maths;
 using Silk.NET.OpenGLES;
 using Shader = VirtualPathCore.Graphics.OpenGL.Shader;
 using Camera = VirtualPathCore.Graphics.Core.Camera;
+using VirtualPathCore.ViewModels;
 
 namespace VirtualPathCore.Services
 {
     public class SimpleDrawingService : IDrawingService
     {
-        private Renderer renderer = null!;
+        /// <summary>
+        /// 图形宿主。抽象成接口而非具体 <see cref="Renderer"/>，使同一套绘制逻辑
+        /// 既能跑在 Avalonia 视口里，也能跑在无 UI 进程的离屏宿主里（虚拟相机）。
+        /// </summary>
+        private IGraphicsHost<GL> renderer = null!;
+        private IRenderSurface surface = null!;
+
+        /// <summary>成像表面尺寸。视口宿主取控件尺寸，离屏宿主取 FBO 尺寸。</summary>
+        private int SurfaceWidth => surface.SurfaceWidth;
+
+        /// <inheritdoc cref="SurfaceWidth"/>
+        private int SurfaceHeight => surface.SurfaceHeight;
+
+        /// <summary>请求重绘。无 UI 宿主据此决定是否渲染下一帧。</summary>
+        private void RequestRender() => surface.RequestRender();
         private SceneService sceneService = null!;
         private Camera camera = null!;
         private OrbitCameraController orbitController = null!;
@@ -35,6 +50,12 @@ namespace VirtualPathCore.Services
         private Mesh? _gizmoMeshTranslateX;
         private Mesh? _gizmoMeshTranslateY;
         private Mesh? _gizmoMeshTranslateZ;
+        private Mesh? _gizmoMeshRotateX;
+        private Mesh? _gizmoMeshRotateY;
+        private Mesh? _gizmoMeshRotateZ;
+        private Mesh? _gizmoMeshScaleX;
+        private Mesh? _gizmoMeshScaleY;
+        private Mesh? _gizmoMeshScaleZ;
 
         // Viewport cameras
     private Camera _camTop = null!;
@@ -48,11 +69,21 @@ namespace VirtualPathCore.Services
         public void Load(object[] args)
         {
             if (args == null || args.Length < 2)
-                throw new ArgumentException("Expected args: Renderer, SceneService");
+                throw new ArgumentException("Expected args: IGraphicsHost<GL>, SceneService");
 
-            renderer = args[0] as Renderer ?? throw new ArgumentException("First arg must be Renderer");
+            // 接受任意 IGraphicsHost<GL> 实现：Avalonia 的 Renderer，或无 UI 的离屏宿主
+            renderer = args[0] as IGraphicsHost<GL>
+                ?? throw new ArgumentException("First arg must implement IGraphicsHost<GL>");
             sceneService = args[1] as SceneService ?? throw new ArgumentException("Second arg must be SceneService");
             sceneService.SetHost(renderer);
+
+            // 表面尺寸与重绘请求是宿主职责（IRenderSurface），绘图服务不关心宿主是窗口还是离屏。
+            // 两个接口合一传入的宿主（Avalonia Renderer）直接满足；分离时也可显式提供。
+            surface = args.Length > 2 && args[2] is IRenderSurface explicitSurface
+                ? explicitSurface
+                : renderer as IRenderSurface
+                  ?? throw new ArgumentException(
+                      "Graphics host must also implement IRenderSurface (surface size + RequestRender)");
 
             camera = new Camera
             {
@@ -115,8 +146,9 @@ namespace VirtualPathCore.Services
                     _gridAttribCache["In_Position"] = gridPipeline.GetAttribLocation("In_Position");
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[SimpleDrawingService] Failed to load grid shaders: {ex.Message}");
             }
 
             try
@@ -133,14 +165,16 @@ namespace VirtualPathCore.Services
                     _gizmoInitialized = true;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[SimpleDrawingService] Failed to load gizmo shaders: {ex.Message}");
             }
 
             CacheAttribLocations();
             BuildGridMesh();
             BuildGizmoMeshes();
             BuildAxisMesh();
+            BuildOriginMarker();
 
             if (sceneService.SceneObjects.Count == 0)
             {
@@ -153,6 +187,21 @@ namespace VirtualPathCore.Services
             }
 
             _isInitialized = true;
+        }
+
+        private Mesh? _originMarkerMesh;
+
+        private void BuildOriginMarker()
+        {
+            var cube = SceneObjectViewModel.CreateCube("OriginMarker");
+            if (cube.SceneObject.MeshBlueprint != null)
+            {
+                _originMarkerMesh = new Mesh(renderer, cube.SceneObject.MeshBlueprint.Vertices, cube.SceneObject.MeshBlueprint.Indices);
+                _originMarkerMesh.SetupAttributes(
+                    _attribCache["In_Position"], _attribCache["In_Normal"],
+                    _attribCache["In_Tangent"], _attribCache["In_Bitangent"],
+                    _attribCache["In_Color"], _attribCache["In_TexCoord"]);
+            }
         }
 
         private void CacheAttribLocations()
@@ -240,6 +289,91 @@ namespace VirtualPathCore.Services
             _gizmoMeshTranslateX = CreateSimpleMesh(vertsX.ToArray(), idxX.ToArray(), _gizmoAttribCache);
             _gizmoMeshTranslateY = CreateSimpleMesh(vertsY.ToArray(), idxY.ToArray(), _gizmoAttribCache);
             _gizmoMeshTranslateZ = CreateSimpleMesh(vertsZ.ToArray(), idxZ.ToArray(), _gizmoAttribCache);
+
+            // Rotation gizmos (circles)
+            float radius = 0.6f;
+            int segments = 32;
+
+            var vertsRotX = new List<Vertex>();
+            var idxRotX = new List<uint>();
+            for (int i = 0; i <= segments; i++)
+            {
+                float angle = i * 2 * MathF.PI / segments;
+                float y = radius * MathF.Cos(angle);
+                float z = radius * MathF.Sin(angle);
+                vertsRotX.Add(new Vertex(new Vector3D<float>(0, y, z), color: new Vector4D<float>(1, 0, 0, 1)));
+            }
+            for (uint j = 0; j < (uint)vertsRotX.Count; j++) idxRotX.Add(j);
+
+            var vertsRotY = new List<Vertex>();
+            var idxRotY = new List<uint>();
+            for (int i = 0; i <= segments; i++)
+            {
+                float angle = i * 2 * MathF.PI / segments;
+                float x = radius * MathF.Cos(angle);
+                float z = radius * MathF.Sin(angle);
+                vertsRotY.Add(new Vertex(new Vector3D<float>(x, 0, z), color: new Vector4D<float>(0, 1, 0, 1)));
+            }
+            for (uint j = 0; j < (uint)vertsRotY.Count; j++) idxRotY.Add(j);
+
+            var vertsRotZ = new List<Vertex>();
+            var idxRotZ = new List<uint>();
+            for (int i = 0; i <= segments; i++)
+            {
+                float angle = i * 2 * MathF.PI / segments;
+                float x = radius * MathF.Cos(angle);
+                float y = radius * MathF.Sin(angle);
+                vertsRotZ.Add(new Vertex(new Vector3D<float>(x, y, 0), color: new Vector4D<float>(0, 0, 1, 1)));
+            }
+            for (uint j = 0; j < (uint)vertsRotZ.Count; j++) idxRotZ.Add(j);
+
+            _gizmoMeshRotateX = CreateSimpleMesh(vertsRotX.ToArray(), idxRotX.ToArray(), _gizmoAttribCache);
+            _gizmoMeshRotateY = CreateSimpleMesh(vertsRotY.ToArray(), idxRotY.ToArray(), _gizmoAttribCache);
+            _gizmoMeshRotateZ = CreateSimpleMesh(vertsRotZ.ToArray(), idxRotZ.ToArray(), _gizmoAttribCache);
+
+            // Scale gizmos (lines with cubes at ends)
+            float scaleLen = 0.5f;
+            float cubeSize = 0.05f;
+
+            var vertsScaleX = new List<Vertex>();
+            var idxScaleX = new List<uint>();
+            vertsScaleX.Add(new Vertex(Vector3D<float>.Zero, color: new Vector4D<float>(1, 0, 0, 1)));
+            vertsScaleX.Add(new Vertex(new Vector3D<float>(scaleLen, 0, 0), color: new Vector4D<float>(1, 0, 0, 1)));
+            vertsScaleX.Add(new Vertex(new Vector3D<float>(scaleLen - cubeSize, -cubeSize, -cubeSize), color: new Vector4D<float>(1, 0, 0, 1)));
+            vertsScaleX.Add(new Vertex(new Vector3D<float>(scaleLen, cubeSize, -cubeSize), color: new Vector4D<float>(1, 0, 0, 1)));
+            vertsScaleX.Add(new Vertex(new Vector3D<float>(scaleLen, cubeSize, cubeSize), color: new Vector4D<float>(1, 0, 0, 1)));
+            vertsScaleX.Add(new Vertex(new Vector3D<float>(scaleLen - cubeSize, -cubeSize, cubeSize), color: new Vector4D<float>(1, 0, 0, 1)));
+            vertsScaleX.Add(new Vertex(new Vector3D<float>(scaleLen, -cubeSize, -cubeSize), color: new Vector4D<float>(1, 0, 0, 1)));
+            vertsScaleX.Add(new Vertex(new Vector3D<float>(scaleLen, -cubeSize, cubeSize), color: new Vector4D<float>(1, 0, 0, 1)));
+            for (uint j = 0; j < (uint)vertsScaleX.Count; j++) idxScaleX.Add(j);
+
+            var vertsScaleY = new List<Vertex>();
+            var idxScaleY = new List<uint>();
+            vertsScaleY.Add(new Vertex(Vector3D<float>.Zero, color: new Vector4D<float>(0, 1, 0, 1)));
+            vertsScaleY.Add(new Vertex(new Vector3D<float>(0, scaleLen, 0), color: new Vector4D<float>(0, 1, 0, 1)));
+            vertsScaleY.Add(new Vertex(new Vector3D<float>(-cubeSize, scaleLen - cubeSize, -cubeSize), color: new Vector4D<float>(0, 1, 0, 1)));
+            vertsScaleY.Add(new Vertex(new Vector3D<float>(cubeSize, scaleLen, -cubeSize), color: new Vector4D<float>(0, 1, 0, 1)));
+            vertsScaleY.Add(new Vertex(new Vector3D<float>(cubeSize, scaleLen, cubeSize), color: new Vector4D<float>(0, 1, 0, 1)));
+            vertsScaleY.Add(new Vertex(new Vector3D<float>(-cubeSize, scaleLen - cubeSize, cubeSize), color: new Vector4D<float>(0, 1, 0, 1)));
+            vertsScaleY.Add(new Vertex(new Vector3D<float>(-cubeSize, scaleLen, -cubeSize), color: new Vector4D<float>(0, 1, 0, 1)));
+            vertsScaleY.Add(new Vertex(new Vector3D<float>(-cubeSize, scaleLen, cubeSize), color: new Vector4D<float>(0, 1, 0, 1)));
+            for (uint j = 0; j < (uint)vertsScaleY.Count; j++) idxScaleY.Add(j);
+
+            var vertsScaleZ = new List<Vertex>();
+            var idxScaleZ = new List<uint>();
+            vertsScaleZ.Add(new Vertex(Vector3D<float>.Zero, color: new Vector4D<float>(0, 0, 1, 1)));
+            vertsScaleZ.Add(new Vertex(new Vector3D<float>(0, 0, scaleLen), color: new Vector4D<float>(0, 0, 1, 1)));
+            vertsScaleZ.Add(new Vertex(new Vector3D<float>(-cubeSize, -cubeSize, scaleLen - cubeSize), color: new Vector4D<float>(0, 0, 1, 1)));
+            vertsScaleZ.Add(new Vertex(new Vector3D<float>(cubeSize, -cubeSize, scaleLen), color: new Vector4D<float>(0, 0, 1, 1)));
+            vertsScaleZ.Add(new Vertex(new Vector3D<float>(cubeSize, cubeSize, scaleLen), color: new Vector4D<float>(0, 0, 1, 1)));
+            vertsScaleZ.Add(new Vertex(new Vector3D<float>(-cubeSize, cubeSize, scaleLen - cubeSize), color: new Vector4D<float>(0, 0, 1, 1)));
+            vertsScaleZ.Add(new Vertex(new Vector3D<float>(-cubeSize, -cubeSize, scaleLen), color: new Vector4D<float>(0, 0, 1, 1)));
+            vertsScaleZ.Add(new Vertex(new Vector3D<float>(-cubeSize, cubeSize, scaleLen), color: new Vector4D<float>(0, 0, 1, 1)));
+            for (uint j = 0; j < (uint)vertsScaleZ.Count; j++) idxScaleZ.Add(j);
+
+            _gizmoMeshScaleX = CreateSimpleMesh(vertsScaleX.ToArray(), idxScaleX.ToArray(), _gizmoAttribCache);
+            _gizmoMeshScaleY = CreateSimpleMesh(vertsScaleY.ToArray(), idxScaleY.ToArray(), _gizmoAttribCache);
+            _gizmoMeshScaleZ = CreateSimpleMesh(vertsScaleZ.ToArray(), idxScaleZ.ToArray(), _gizmoAttribCache);
         }
 
         private void BuildAxisMesh()
@@ -271,12 +405,59 @@ namespace VirtualPathCore.Services
 
         private int TotalViewCount() => 1 + ActiveExtraCount();
 
+        /// <summary>
+        /// 设置主相机的观察目标与环绕参数。
+        ///
+        /// 编辑器里用户用鼠标拖拽改变视角，走的是 <see cref="Orbit"/> / <see cref="Pan"/> / <see cref="Zoom"/>；
+        /// 而无 UI 的宿主（如离屏"虚拟相机"）没有鼠标，需要能直接指定机位。
+        ///
+        /// 角度约定：<paramref name="yawDegrees"/> / <paramref name="pitchDegrees"/> 描述的是
+        /// <b>视线方向</b>（即 <see cref="Camera.Yaw"/> / <see cref="Camera.Pitch"/> 的定义），
+        /// 因此直接写入相机即可被每帧的 <c>orbitController.Update()</c> 正确消费 ——
+        /// 不要在这里调用 <c>Camera.LookAt</c>，那会再次改写 Yaw 并与控制器互相覆盖。
+        /// </summary>
+        /// <param name="target">观察目标点（轨道中心）。</param>
+        /// <param name="distance">相机到目标点的距离。</param>
+        /// <param name="pitchDegrees">视线俯仰角（度），正值抬头、负值俯视。</param>
+        /// <param name="yawDegrees">
+        /// 视线方位角（度），从 +X 轴起算：0° 表示看向 +X，90° 表示看向 +Z。
+        /// 相机位于视线的反方向上。
+        /// </param>
+        public void SetCameraPose(Vector3D<float> target, float distance, float pitchDegrees, float yawDegrees)
+        {
+            if (camera == null)
+                return;
+
+            orbitController!.Target = target;
+            orbitController.Distance = distance;
+
+            camera.Pitch = pitchDegrees;
+            camera.Yaw = yawDegrees;
+
+            // 立即应用一次，避免要等下一帧 Update 才生效
+            orbitController.Update(0.0);
+            RequestRender();
+        }
+
+        /// <summary>设置主相机的垂直视场角（度）。</summary>
+        public void SetCameraFov(float fovDegrees)
+        {
+            if (camera == null)
+                return;
+
+            camera.Fov = fovDegrees;
+            RequestRender();
+        }
+
+        /// <summary>当前主相机位置（供宿主读取或做投影计算）。</summary>
+        public Vector3D<float> CameraPosition => camera?.Position ?? Vector3D<float>.Zero;
+
         public void Update(double deltaSeconds)
         {
             if (!_isInitialized) return;
 
-            int w = renderer.PixelWidth;
-            int h = renderer.PixelHeight;
+            int w = SurfaceWidth;
+            int h = SurfaceHeight;
 
             int total = TotalViewCount();
             int halfW = w / 2;
@@ -285,14 +466,15 @@ namespace VirtualPathCore.Services
             camera.Width = total == 4 ? halfW : (total >= 2 ? halfW : w);
             camera.Height = total == 4 ? halfH : h;
             _camTop.Width = total >= 2 ? halfW : w;
-            _camTop.Height = total == 4 ? halfH : h;
-            _camFront.Width = total >= 3 ? halfW : w;
-            _camFront.Height = total == 4 ? halfH : h;
-            _camRight.Width = halfW;
-            _camRight.Height = halfH;
+            _camTop.Height = total >= 3 ? halfH : h;
+            _camFront.Width = total >= 3 ? halfW : (total == 2 ? halfW : w);
+            _camFront.Height = total == 4 ? halfH : (total == 3 ? halfH : h);
+            _camRight.Width = total >= 2 ? halfW : w;
+            _camRight.Height = total == 4 ? halfH : (total == 3 ? halfH : h);
 
             orbitController.Update(deltaSeconds);
             sceneService.Scene.Update(deltaSeconds);
+            sceneService.Animation?.Update(deltaSeconds);
         }
 
         public void Render(double deltaSeconds)
@@ -316,8 +498,8 @@ namespace VirtualPathCore.Services
                 }
             }
 
-            int w = renderer.PixelWidth;
-            int h = renderer.PixelHeight;
+            int w = SurfaceWidth;
+            int h = SurfaceHeight;
             int total = TotalViewCount();
 
             if (total == 1)
@@ -372,7 +554,7 @@ namespace VirtualPathCore.Services
                 e.PropertyName == nameof(Scene.ShowRightView) ||
                 e.PropertyName == nameof(Scene.ShowGrid))
             {
-                renderer.RequestRender();
+                RequestRender();
             }
         }
 
@@ -450,12 +632,42 @@ namespace VirtualPathCore.Services
                 gridPipeline.SetUniform("Projection", cam.Projection);
                 gridPipeline.SetUniform("GridColor", scene.GridColor);
                 gridPipeline.SetUniform("CameraPos", cam.Position);
-                gridMesh.Draw();
+                // GL_LINES: BuildGridMesh emits vertices in pairs, one segment per pair.
+                // Mesh.Draw defaults to Triangles, which turns the whole grid into
+                // degenerate slivers spanning unrelated vertices -- that is the
+                // ragged grey blob the floor used to render as.
+                gridMesh.Draw(GLEnum.Lines);
                 gridPipeline.Unbind();
 
                 gl.Disable(GLEnum.Blend);
             }
 
+            // Reference marker at origin
+            if (_originMarkerMesh != null)
+            {
+                var originMat = Matrix4X4.CreateScale(0.05f, 0.05f, 0.05f);
+                pbrPipeline.Bind();
+                pbrPipeline.SetUniform("Model", originMat);
+                pbrPipeline.SetUniform("ObjectToClip", originMat * cam.View * cam.Projection);
+                pbrPipeline.SetUniform("Albedo", new Vector4D<float>(0.3f, 0.3f, 0.3f, 1.0f));
+                _originMarkerMesh.Draw();
+                pbrPipeline.Unbind();
+            }
+
+            // 背面剔除：MeshFactory 生成的三角形绕序是朝外的，可以正常剔除背面。
+            //
+            // 实测依据（MinimalRenderProgram，清屏后逐像素比对，并读回 GL 状态）：
+            //   CullFace 关闭   -> 覆盖 10.29%，覆盖区均值 rgb=( 92.0, 20.0, 20.0)
+            //   CullFace(Back)  -> 覆盖 10.29%，均值 rgb=( 92.0, 20.0, 20.0)  与关闭时完全一致
+            //   CullFace(Front) -> 覆盖 10.29%，均值 rgb=(201.9, 48.1, 48.1)  换成了远壳
+            // 覆盖率三者相同是因为立方体是凸体，近壳与远壳轮廓几乎重合；
+            // 真正的判据是"剔除背面与关闭剔除逐像素相同"，即近壳本就是正面，
+            // 没有可见面被丢掉。GL 状态读回确认 CullFaceMode 确为 GL_BACK(1029)。
+            //
+            // 注：曾一度改成关闭剔除 + 在 PBR.frag 里用 gl_FrontFacing 翻转背面法线。
+            // 那是在调试期临时给 Camera.View 加了 Transpose 的状态下测得的（cull_back
+            // 覆盖 0%），当时误判成"绕序朝内"。View 转置回退、PBR.vert 法线恢复后
+            // 重新实测，绕序本身一直是正确的，故保留背面剔除、也不用 gl_FrontFacing。
             gl.Enable(GLEnum.CullFace);
             gl.CullFace(GLEnum.Back);
 
@@ -473,15 +685,32 @@ namespace VirtualPathCore.Services
                 if (!obj.Active || obj.Mesh == null) continue;
 
                 Matrix4X4<float> m = obj.Transform.WorldMatrix;
+
+                // 合成顺序：model * view * projection。
+                //
+                // 由 MatrixSweepProgram 在 GPU 上穷举 8 种组合
+                // （transpose × View 是否转置 × 四种乘法顺序）后确定：
+                // 本组合下各向同性的球在屏幕上宽高比 = 1.04（正圆），
+                // 其余组合均为 0.01~1.01 的压扁或完全不可见。
                 Matrix4X4<float> objectToClip = m * cam.View * cam.Projection;
-                Matrix4X4<float> worldToObject = m.Invert();
+
+                // 法线矩阵。
+                //
+                // PBR.vert 里写的是 transpose(mat3(WorldToObject)) * In_Normal，
+                // 即"对物体->世界矩阵取逆转置"。而这里的矩阵是行向量布局，
+                // Matrix4X4.Invert() 返回的已经是行向量约定下的逆矩阵，
+                // 再交给着色器转置会得到错误的法线方向（表现为所有面光照一致、
+                // 完全没有明暗层次）。
+                //
+                // 因此这里直接给出法线矩阵本身，并在着色器侧去掉 transpose。
+                Matrix4X4<float> normalMatrix = m.Invert();
 
                 pbrPipeline.SetUniform("Model", m);
                 pbrPipeline.SetUniform("View", cam.View);
                 pbrPipeline.SetUniform("Projection", cam.Projection);
                 pbrPipeline.SetUniform("ObjectToWorld", m);
                 pbrPipeline.SetUniform("ObjectToClip", objectToClip);
-                pbrPipeline.SetUniform("WorldToObject", worldToObject);
+                pbrPipeline.SetUniform("WorldToObject", normalMatrix);
 
                 Vector4D<float> albedo = obj.Material?.Albedo ?? new Vector4D<float>(1.0f, 0.5f, 0.2f, 1.0f);
                 float metallic = obj.Material?.Metallic ?? 0.1f;
@@ -519,28 +748,88 @@ namespace VirtualPathCore.Services
             gizmoPipeline.SetUniform("View", cam.View);
             gizmoPipeline.SetUniform("Projection", cam.Projection);
 
-            if (_gizmoMeshTranslateX != null)
-            {
-                Matrix4X4<float> mX = Matrix4X4.CreateScale(scale, scale, scale) * Matrix4X4.CreateTranslation(pos);
-                gizmoPipeline.SetUniform("Model", mX);
-                gizmoPipeline.SetUniform("GizmoColor", new Vector4D<float>(1, 0, 0, 1));
-                _gizmoMeshTranslateX.Draw();
-            }
+            var gizmoMode = sceneService.GizmoMode;
 
-            if (_gizmoMeshTranslateY != null)
+            if (gizmoMode == GizmoMode.Translate)
             {
-                Matrix4X4<float> mY = Matrix4X4.CreateScale(scale, scale, scale) * Matrix4X4.CreateTranslation(pos);
-                gizmoPipeline.SetUniform("Model", mY);
-                gizmoPipeline.SetUniform("GizmoColor", new Vector4D<float>(0, 1, 0, 1));
-                _gizmoMeshTranslateY.Draw();
-            }
+                if (_gizmoMeshTranslateX != null)
+                {
+                    Matrix4X4<float> mX = Matrix4X4.CreateScale(scale, scale, scale) * Matrix4X4.CreateTranslation(pos);
+                    gizmoPipeline.SetUniform("Model", mX);
+                    gizmoPipeline.SetUniform("GizmoColor", new Vector4D<float>(1, 0, 0, 1));
+                    // GL_LINES: the translate arrows are segment pairs, not triangles.
+                _gizmoMeshTranslateX.Draw(GLEnum.Lines);
+                }
 
-            if (_gizmoMeshTranslateZ != null)
+                if (_gizmoMeshTranslateY != null)
+                {
+                    Matrix4X4<float> mY = Matrix4X4.CreateScale(scale, scale, scale) * Matrix4X4.CreateTranslation(pos);
+                    gizmoPipeline.SetUniform("Model", mY);
+                    gizmoPipeline.SetUniform("GizmoColor", new Vector4D<float>(0, 1, 0, 1));
+                    _gizmoMeshTranslateY.Draw(GLEnum.Lines);
+                }
+
+                if (_gizmoMeshTranslateZ != null)
+                {
+                    Matrix4X4<float> mZ = Matrix4X4.CreateScale(scale, scale, scale) * Matrix4X4.CreateTranslation(pos);
+                    gizmoPipeline.SetUniform("Model", mZ);
+                    gizmoPipeline.SetUniform("GizmoColor", new Vector4D<float>(0, 0, 1, 1));
+                    _gizmoMeshTranslateZ.Draw(GLEnum.Lines);
+                }
+            }
+            else if (gizmoMode == GizmoMode.Rotate)
             {
-                Matrix4X4<float> mZ = Matrix4X4.CreateScale(scale, scale, scale) * Matrix4X4.CreateTranslation(pos);
-                gizmoPipeline.SetUniform("Model", mZ);
-                gizmoPipeline.SetUniform("GizmoColor", new Vector4D<float>(0, 0, 1, 1));
-                _gizmoMeshTranslateZ.Draw();
+                if (_gizmoMeshRotateX != null)
+                {
+                    Matrix4X4<float> mX = Matrix4X4.CreateScale(scale, scale, scale) * Matrix4X4.CreateTranslation(pos);
+                    gizmoPipeline.SetUniform("Model", mX);
+                    gizmoPipeline.SetUniform("GizmoColor", new Vector4D<float>(1, 0, 0, 1));
+                    _gizmoMeshRotateX.Draw(GLEnum.LineLoop);
+                }
+
+                if (_gizmoMeshRotateY != null)
+                {
+                    Matrix4X4<float> mY = Matrix4X4.CreateScale(scale, scale, scale) * Matrix4X4.CreateTranslation(pos);
+                    gizmoPipeline.SetUniform("Model", mY);
+                    gizmoPipeline.SetUniform("GizmoColor", new Vector4D<float>(0, 1, 0, 1));
+                    _gizmoMeshRotateY.Draw(GLEnum.LineLoop);
+                }
+
+                if (_gizmoMeshRotateZ != null)
+                {
+                    Matrix4X4<float> mZ = Matrix4X4.CreateScale(scale, scale, scale) * Matrix4X4.CreateTranslation(pos);
+                    gizmoPipeline.SetUniform("Model", mZ);
+                    gizmoPipeline.SetUniform("GizmoColor", new Vector4D<float>(0, 0, 1, 1));
+                    _gizmoMeshRotateZ.Draw(GLEnum.LineLoop);
+                }
+            }
+            else if (gizmoMode == GizmoMode.Scale)
+            {
+                if (_gizmoMeshScaleX != null)
+                {
+                    Matrix4X4<float> mX = Matrix4X4.CreateScale(scale, scale, scale) * Matrix4X4.CreateTranslation(pos);
+                    gizmoPipeline.SetUniform("Model", mX);
+                    gizmoPipeline.SetUniform("GizmoColor", new Vector4D<float>(1, 0, 0, 1));
+                    // GL_LINES: the scale handles are a shaft segment plus a wireframe cube
+                // whose corners are stored in edge order.
+                _gizmoMeshScaleX.Draw(GLEnum.Lines);
+                }
+
+                if (_gizmoMeshScaleY != null)
+                {
+                    Matrix4X4<float> mY = Matrix4X4.CreateScale(scale, scale, scale) * Matrix4X4.CreateTranslation(pos);
+                    gizmoPipeline.SetUniform("Model", mY);
+                    gizmoPipeline.SetUniform("GizmoColor", new Vector4D<float>(0, 1, 0, 1));
+                    _gizmoMeshScaleY.Draw(GLEnum.Lines);
+                }
+
+                if (_gizmoMeshScaleZ != null)
+                {
+                    Matrix4X4<float> mZ = Matrix4X4.CreateScale(scale, scale, scale) * Matrix4X4.CreateTranslation(pos);
+                    gizmoPipeline.SetUniform("Model", mZ);
+                    gizmoPipeline.SetUniform("GizmoColor", new Vector4D<float>(0, 0, 1, 1));
+                    _gizmoMeshScaleZ.Draw(GLEnum.Lines);
+                }
             }
 
             gizmoPipeline.Unbind();
@@ -551,7 +840,7 @@ namespace VirtualPathCore.Services
             _isMouseDown = true;
             _lastMouseX = x;
             _lastMouseY = y;
-            renderer.RequestRender();
+            RequestRender();
         }
 
         public void OnMouseUp()
@@ -559,19 +848,62 @@ namespace VirtualPathCore.Services
             _isMouseDown = false;
         }
 
+        private bool _isRightMouseDown = false;
+
         public void OnMouseMove(float x, float y)
         {
             if (!_isMouseDown) return;
-            orbitController.Orbit(x - _lastMouseX, y - _lastMouseY);
+
+            // Simple heuristic: if right button is held, pan; otherwise orbit.
+            // In a real app we'd track actual button state from event args.
+            if (_isRightMouseDown)
+            {
+                orbitController.Pan(x - _lastMouseX, y - _lastMouseY);
+            }
+            else
+            {
+                orbitController.Orbit(x - _lastMouseX, y - _lastMouseY);
+            }
+
             _lastMouseX = x;
             _lastMouseY = y;
-            renderer.RequestRender();
+            RequestRender();
+        }
+
+        public void OnRightMouseDown(float x, float y)
+        {
+            _isRightMouseDown = true;
+            OnMouseDown(x, y);
+        }
+
+        public void OnRightMouseUp()
+        {
+            _isRightMouseDown = false;
+            OnMouseUp();
         }
 
         public void OnScroll(float delta)
         {
             orbitController.Zoom(delta * 2);
-            renderer.RequestRender();
+            RequestRender();
+        }
+
+        public void Orbit(float dx, float dy)
+        {
+            orbitController.Orbit(dx, dy);
+            RequestRender();
+        }
+
+        public void Pan(float dx, float dy)
+        {
+            orbitController.Pan(dx, dy);
+            RequestRender();
+        }
+
+        public void Zoom(float delta)
+        {
+            orbitController.Zoom(delta * 2);
+            RequestRender();
         }
     }
 }

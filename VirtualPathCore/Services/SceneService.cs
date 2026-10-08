@@ -17,6 +17,7 @@ public class SceneService
     public ObservableCollection<SceneObjectViewModel> SceneObjects { get; } = new();
     public SceneObjectViewModel? SelectedObject { get; set; }
     public GizmoMode GizmoMode { get; set; } = GizmoMode.Translate;
+    public AnimationService? Animation { get; set; }
 
     public SceneService(IGraphicsHost<GL>? graphicsHost = null)
     {
@@ -33,8 +34,9 @@ public class SceneService
 
     private void RequestRender()
     {
-        if (_graphicsHost is Renderer r)
-            r.RequestRender();
+        // 用 IRenderSurface 而非具体 Renderer，使离屏宿主（虚拟相机）也能收到重绘请求
+        if (_graphicsHost is IRenderSurface surface)
+            surface.RequestRender();
     }
 
     private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
