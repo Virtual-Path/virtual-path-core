@@ -187,7 +187,10 @@ public class LanguageService : INotifyPropertyChanged
             var lang = _languages[languageCode];
             FlattenJson(jsonData, "", lang);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LanguageService] Failed to load language file: {ex.Message}");
+        }
     }
 
     private static void FlattenJson(Dictionary<string, JsonElement> data, string prefix, Dictionary<string, string> output)
