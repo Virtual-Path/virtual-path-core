@@ -73,6 +73,13 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private bool _canRedo;
 
+    // Animation
+    [ObservableProperty]
+    private bool _isAnimating;
+
+    [ObservableProperty]
+    private double _animationTime;
+
     // Light properties for selected light
     [ObservableProperty]
     private float _lightIntensity = 1.0f;
@@ -109,6 +116,7 @@ public partial class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasSelectedObject));
         OnPropertyChanged(nameof(HasNoSelectedObject));
         UpdateLightProperties();
+        _sceneService.SelectedObject = value;
     }
 
     partial void OnShowGridChanged(bool value)
@@ -282,8 +290,41 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void RenameSelected()
+    private async Task SelectAlbedoMap()
     {
+        var topLevel = GetTopLevel();
+        if (topLevel == null || SelectedObject == null) return;
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Select Albedo Map",
+            FileTypeFilter = new[] { new FilePickerFileType("Images") { Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.tga" } } }
+        });
+
+        if (files.Count > 0)
+        {
+            SelectedObject.AlbedoMapPath = files[0].Path.LocalPath;
+            IsModified = true;
+        }
+    }
+
+    [RelayCommand]
+    private async Task SelectNormalMap()
+    {
+        var topLevel = GetTopLevel();
+        if (topLevel == null || SelectedObject == null) return;
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Select Normal Map",
+            FileTypeFilter = new[] { new FilePickerFileType("Images") { Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.tga" } } }
+        });
+
+        if (files.Count > 0)
+        {
+            SelectedObject.NormalMapPath = files[0].Path.LocalPath;
+            IsModified = true;
+        }
     }
 
     [RelayCommand]
@@ -305,6 +346,42 @@ public partial class MainViewModel : ViewModelBase
         if (_sceneService.Scene.MainCamera is not Camera camera) return;
         camera.Reset();
         CameraInfo = "Camera reset";
+    }
+
+    [RelayCommand]
+    private void AddKeyframe()
+    {
+        if (SelectedObject == null) return;
+        _sceneService.Animation ??= new AnimationService();
+        _sceneService.Animation.AddKeyframe(
+            SelectedObject.SceneObject,
+            AnimationTime,
+            SelectedObject.SceneObject.Transform.Position,
+            SelectedObject.SceneObject.Transform.Rotation,
+            SelectedObject.SceneObject.Transform.Scale);
+    }
+
+    [RelayCommand]
+    private void PlayAnimation()
+    {
+        _sceneService.Animation ??= new AnimationService();
+        _sceneService.Animation.Play();
+        IsAnimating = true;
+    }
+
+    [RelayCommand]
+    private void PauseAnimation()
+    {
+        _sceneService.Animation?.Pause();
+        IsAnimating = false;
+    }
+
+    [RelayCommand]
+    private void StopAnimation()
+    {
+        _sceneService.Animation?.Stop();
+        IsAnimating = false;
+        AnimationTime = 0;
     }
 
     partial void OnGizmoModeChanged(GizmoMode value)
@@ -369,6 +446,34 @@ public partial class MainViewModel : ViewModelBase
                 var vm = _sceneService.AddSphere($"Imported {Path.GetFileNameWithoutExtension(files[0].Name)}");
                 SetSelectedObject(vm);
                 IsModified = true;
+            }
+        }
+    }
+
+    [RelayCommand]
+    private async Task ExportModel()
+    {
+        var topLevel = GetTopLevel();
+        if (topLevel == null) return;
+
+        var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Export 3D Model",
+            DefaultExtension = "gltf",
+            FileTypeChoices = new[] { new FilePickerFileType("GLTF") { Patterns = new[] { "*.gltf" } } }
+        });
+
+        if (file != null)
+        {
+            try
+            {
+                var exporter = new ModelExporterService();
+                exporter.ExportScene(file.Path.LocalPath, _sceneService.SceneObjects.ToList());
+                System.Diagnostics.Debug.WriteLine($"[MainViewModel] Exported scene to: {file.Path.LocalPath}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainViewModel] Failed to export model: {ex.Message}");
             }
         }
     }
@@ -483,7 +588,10 @@ public partial class MainViewModel : ViewModelBase
             IsModified = false;
             OnPropertyChanged(nameof(Title));
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainViewModel] Failed to load project: {ex.Message}");
+        }
     }
 
     private void WriteProjectFile(string path)
@@ -520,7 +628,10 @@ public partial class MainViewModel : ViewModelBase
             File.WriteAllText(path, json);
             IsModified = false;
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainViewModel] Failed to save project: {ex.Message}");
+        }
     }
 
     private static Window? GetTopLevel()

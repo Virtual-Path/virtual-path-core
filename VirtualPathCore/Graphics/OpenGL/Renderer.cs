@@ -9,7 +9,7 @@ using Silk.NET.OpenGLES;
 
 namespace VirtualPathCore.Graphics.OpenGL;
 
-public unsafe class Renderer : OpenGlControlBase, IGraphicsHost<GL>
+public unsafe class Renderer : OpenGlControlBase, IGraphicsHost<GL>, IRenderSurface
 {
     private readonly Stopwatch _stopwatch = new();
 
@@ -29,6 +29,11 @@ public unsafe class Renderer : OpenGlControlBase, IGraphicsHost<GL>
 
     public int PixelWidth => (int)(Bounds.Width * (VisualRoot?.RenderScaling ?? 1.0));
     public int PixelHeight => (int)(Bounds.Height * (VisualRoot?.RenderScaling ?? 1.0));
+
+    // IRenderSurface：把"表面尺寸"暴露给绘图服务，使 SimpleDrawingService
+    // 不必依赖 Avalonia 控件本身（从而能在无 UI 进程里运行）。
+    public int SurfaceWidth => PixelWidth;
+    public int SurfaceHeight => PixelHeight;
 
     public void RequestRender()
     {
@@ -119,8 +124,9 @@ public unsafe class Renderer : OpenGlControlBase, IGraphicsHost<GL>
             OnResize?.Invoke(PixelWidth, PixelHeight);
             RequestRender();
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[Renderer] OpenGL initialization failed: {ex.Message}");
         }
     }
 
@@ -160,16 +166,26 @@ public unsafe class Renderer : OpenGlControlBase, IGraphicsHost<GL>
     public event Action? OnMouseUp;
     public event Action<float, float>? OnMouseMove;
     public event Action<float>? OnScroll;
+    public event Action<float, float>? OnRightMouseDown;
+    public event Action? OnRightMouseUp;
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         var point = e.GetCurrentPoint(this);
-        OnMouseDown?.Invoke((float)point.Position.X, (float)point.Position.Y);
+        if (point.Properties.IsRightButtonPressed)
+        {
+            OnRightMouseDown?.Invoke((float)point.Position.X, (float)point.Position.Y);
+        }
+        else
+        {
+            OnMouseDown?.Invoke((float)point.Position.X, (float)point.Position.Y);
+        }
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         OnMouseUp?.Invoke();
+        OnRightMouseUp?.Invoke();
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)

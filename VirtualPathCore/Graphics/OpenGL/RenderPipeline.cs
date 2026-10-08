@@ -149,6 +149,16 @@ public unsafe class RenderPipeline : GraphicsResource
     /// <param name="value">要设置的值</param>
     public void SetUniform(string name, Matrix4X4<float> value)
     {
+        // transpose = false 是必需的，由 GPU 穷举实测确认（MatrixSweepProgram）。
+        //
+        // 引擎的矩阵链按行向量约定合成（model * view * projection）。
+        // GL 按列主序读取这 16 个 float，因此以 transpose=false 上传时，
+        // 着色器里的 `ObjectToClip * vec4(pos, 1.0)` 恰好等价于 CPU 侧的
+        // `vec4(pos, 1.0) * ObjectToClip` —— 这正是行向量语义。
+        //
+        // 传 true 会让 GPU 直接按列主序解释行向量矩阵，等于多转置一次。
+        // 实测 16 种组合中，transpose=true 的组合都无法同时满足形状/尺寸/居中：
+        // M*V*P 下球体宽高比掉到 0.014（被压成竖条），其余顺序直接不可见。
         GL.UniformMatrix4(GetUniformLocation(name), 1, false, (float*)&value);
     }
 

@@ -15,6 +15,7 @@ public partial class MainView : UserControl
 
     public bool IsRendererReady { get; private set; }
     public Action? RendererReady;
+    public SimpleDrawingService? DrawingService => _drawingService1 as SimpleDrawingService;
 
     public MainView()
     {
@@ -30,6 +31,8 @@ public partial class MainView : UserControl
         glRenderer1.OnMouseUp += () => { if (_drawingService1 is SimpleDrawingService s) s.OnMouseUp(); };
         glRenderer1.OnMouseMove += (x, y) => { if (_drawingService1 is SimpleDrawingService s) s.OnMouseMove(x, y); };
         glRenderer1.OnScroll += (d) => { if (_drawingService1 is SimpleDrawingService s) s.OnScroll(d); };
+        glRenderer1.OnRightMouseDown += (x, y) => { if (_drawingService1 is SimpleDrawingService s) s.OnRightMouseDown(x, y); };
+        glRenderer1.OnRightMouseUp += () => { if (_drawingService1 is SimpleDrawingService s) s.OnRightMouseUp(); };
     }
 
     protected override void OnDataContextChanged(EventArgs e)
