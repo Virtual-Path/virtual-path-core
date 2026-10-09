@@ -151,6 +151,42 @@ dotnet publish VirtualPathCore.Desktop -c Release -r win-x64 --self-contained
 
 ---
 
+## Virtual Camera (headless MJPEG server)
+
+`VirtualPathCore.CameraBridge` can run the production-line scene **without any window** and serve
+it as an MJPEG stream, so machine-vision software can treat the 3D engine as a camera:
+
+```bash
+dotnet run --project VirtualPathCore.CameraBridge -- --serve [--port 8080] [--width 1280] [--height 720] [--fps 30]
+```
+
+```
+=== virtual camera server ===
+  resolution : 1280x720
+  fps        : 30
+  stream url : http://127.0.0.1:8080/cam1
+```
+
+- The endpoint is **`/cam1`** — and only that. Any other path gets a 404.
+- Consume it with OpenCV directly: `new VideoCapture("http://127.0.0.1:8080/cam1")`.
+- Log lines worth knowing:
+  - `[serve] client connected: <addr>` — a consumer attached
+  - `[serve] streaming... frame N, pushed M` — frames flowing (`M < N` means a write failed)
+  - `[serve] rejected /xxx (only /cam1 is served)` — a consumer asked for the wrong path; this
+    repeats once per OpenCV backend attempt, so a wall of them means "the path is wrong",
+    not "the server is broken"
+- The scene (`DemoScene`) is a production inspection station: gantry, yellow warning lines,
+  a three-colour tower beacon, conveyor, upstream/downstream totes, and workpieces that include
+  deliberately non-conforming parts (dark red with a black marker post). Same-coloured decoy
+  blocks sit on the back wall so detection is not trivially easy.
+- `DemoScene.InspectionX` and `DemoScene.InspectionHalfWidth` (0 and 0.75) give the inspection
+  station's world position — use them to align a vision ROI.
+
+Pairing with `virtual-path-vision`: source *Network Stream*, host `127.0.0.1`, port `8080`,
+path **`/cam1`**.
+
+---
+
 ##  Controls
 
 | Input | Action |
