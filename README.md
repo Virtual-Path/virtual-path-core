@@ -217,8 +217,23 @@ VirtualPath-Core/
 │   ├── Services/                       # Scene management, settings, i18n, undo/redo
 │   ├── ViewModels/                     # MVVM view models
 │   └── Views/                          # Avalonia XAML+code-behind
-└── VirtualPathCore.Desktop/            # Desktop host executable
+├── VirtualPathCore.Desktop/            # Desktop host executable (Avalonia)
+├── VirtualPathCore.CameraBridge/        # Headless host: offscreen rendering + MJPEG server
+│   ├── Program.cs                      # Entry point / argument dispatch
+│   ├── ServeProgram.cs                 # --serve: virtual camera
+│   ├── MjpegServer.cs                  # Minimal multipart/x-mixed-replace server (/cam1)
+│   ├── DemoScene.cs                    # Production inspection station scene
+│   ├── HeadlessGraphicsHost.cs         # Offscreen GL context
+│   └── *Probe.cs, *Program.cs          # One-off diagnostics (matrix layout, GPU NDC, …)
+└── VirtualPathCore.Tests/              # xunit regression tests
+    ├── TransformTests.cs               # Matrix/camera math
+    └── RenderingRegressionTests.cs     # Projection and clipping invariants
 ```
+
+> The `*Probe.cs` / `*Program.cs` files in `VirtualPathCore.CameraBridge` are **throwaway
+> diagnostics** kept for reproducibility: each one settled a specific question that static
+> reading could not (matrix upload conventions, GPU ground truth, tangents). Run them
+> explicitly rather than expecting them in normal use.
 
 ---
 
